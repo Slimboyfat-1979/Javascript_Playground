@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Playground</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#282a36}
+body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
+
+/* ── Toolbar ── */
+#bar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;flex-wrap:wrap}
+#logo{font-family:'Syne',system-ui;font-size:15px;font-weight:600;color:#bd93f9;margin-right:4px;letter-spacing:-.3px}
+.bar-group{display:flex;align-items:center;gap:5px}
+.bar-group label{font-size:11px;color:#6272a4;font-family:'Syne',system-ui;white-space:nowrap}
+.sp{flex:1;min-width:4px}
+.ibtn{padding:5px 11px;background:transparent;border:1px solid #44475a;border-radius:6px;color:#6272a4;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color .12s,border-color .12s;white-space:nowrap;line-height:1}
+.ibtn:hover{color:#f8f8f2;border-color:#6272a4}
+.ibtn.on{border-color:#bd93f9;color:#bd93f9}
+.ibtn.vis{border-color:#50fa7b;color:#50fa7b}
+.ibtn.ex-on{border-color:#ffb86c;color:#ffb86c}
+.rbtn{padding:6px 18px;background:#bd93f9;color:#282a36;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Syne',system-ui;font-weight:600;transition:background .12s}
+.rbtn:hover{background:#cfa9fa}.rbtn:active{transform:scale(.97)}
+
+#ar-bar{height:2px;background:#44475a;flex-shrink:0;position:relative;overflow:hidden}
+#ar-prog{height:100%;width:0%;background:#bd93f9;position:absolute;top:0;left:0}
+
+/* ── Outer shell ── */
+#shell{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* ── Exercises sidebar ── */
+#ex-sidebar{
+  width:300px;min-width:300px;background:#1e1f29;
+  border-right:1px solid #44475a;display:flex;flex-direction:column;
+  overflow:hidden;transition:width .2s,min-width .2s;flex-shrink:0;
+}
+#ex-sidebar.closed{width:0;min-width:0;border-right:none}
+#ex-hdr{padding:12px 14px 8px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0}
+#ex-hdr h2{font-family:'Syne',system-ui;font-size:13px;font-weight:600;color:#ffb86c;letter-spacing:.3px}
+#ex-hdr p{font-size:11px;color:#6272a4;margin-top:3px;font-family:'Syne',system-ui}
+
+/* category tabs */
+#ex-cats{display:flex;gap:4px;padding:8px 10px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;flex-wrap:wrap}
+.cat-btn{padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid #44475a;color:#6272a4;font-family:'Syne',system-ui;transition:all .12s}
+.cat-btn:hover{color:#f8f8f2;border-color:#6272a4}
+.cat-btn.on{background:#44475a;color:#ffb86c;border-color:#ffb86c}
+
+/* exercise list */
+#ex-list{flex:1;overflow-y:auto;padding:8px}
+.ex-item{
+  padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;
+  border:1px solid #44475a;background:#282a36;transition:all .15s;
+}
+.ex-item:hover{border-color:#6272a4;background:#2d2f3f}
+.ex-item.active{border-color:#ffb86c;background:#2d2f3f}
+.ex-item.done{border-color:#50fa7b}
+.ex-title{font-size:12.5px;color:#f8f8f2;font-family:'Syne',system-ui;font-weight:500;display:flex;align-items:center;gap:6px}
+.ex-title .tick{color:#50fa7b;font-size:11px;display:none}
+.ex-item.done .tick{display:inline}
+.ex-diff{font-size:10px;margin-top:3px;font-family:'Syne',system-ui}
+.diff-easy{color:#50fa7b}.diff-med{color:#ffb86c}.diff-hard{color:#ff5555}
+.ex-desc{font-size:11px;color:#6272a4;margin-top:4px;line-height:1.5;font-family:'Syne',system-ui}
+
+/* ── Exercise detail / tests panel ── */
+#ex-detail{
+  display:none;flex-direction:column;
+  border-top:1px solid #44475a;flex-shrink:0;max-height:45%;overflow:hidden;
+}
+#ex-detail.open{display:flex}
+#ex-detail-hdr{padding:8px 12px;background:#21222c;border-bottom:1px solid #44475a;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#ex-detail-hdr span{font-size:12px;color:#ffb86c;font-family:'Syne',system-ui;font-weight:500;flex:1}
+#test-btn{padding:4px 12px;background:#50fa7b;color:#282a36;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Syne',system-ui;font-weight:600;transition:background .12s}
+#test-btn:hover{background:#7afcab}
+#ex-detail-body{overflow-y:auto;padding:10px 12px;flex:1}
+.ex-full-desc{font-size:12px;color:#f8f8f2;line-height:1.7;margin-bottom:10px;font-family:'Syne',system-ui}
+.ex-full-desc code{color:#f1fa8c;background:#44475a40;padding:1px 5px;border-radius:3px}
+.test-result{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:5px;font-size:11.5px;font-family:'Syne',system-ui;line-height:1.5}
+.test-result.pass{background:#50fa7b18;border:1px solid #50fa7b40;color:#50fa7b}
+.test-result.fail{background:#ff555518;border:1px solid #ff555540;color:#ff5555}
+.test-result.pending{background:#44475a30;border:1px solid #44475a;color:#6272a4}
+.test-icon{flex-shrink:0;font-size:13px}
+.hint-btn{margin-top:8px;padding:4px 10px;background:transparent;border:1px solid #ffb86c40;border-radius:5px;color:#ffb86c;font-size:11px;cursor:pointer;font-family:'Syne',system-ui;transition:all .12s}
+.hint-btn:hover{background:#ffb86c20}
+.hint-box{margin-top:8px;padding:8px 10px;background:#ffb86c10;border:1px solid #ffb86c30;border-radius:6px;font-size:11.5px;color:#ffb86c;font-family:'Syne',system-ui;line-height:1.6;display:none}
+.hint-box.show{display:block}
+
+/* ── Workspace ── */
+#ws{display:flex;flex:1;overflow:hidden;min-height:0}
+#left{display:flex;width:50%;min-width:80px;overflow:hidden;position:relative}
+#left.layout-v{flex-direction:column}
+#left.layout-h{flex-direction:row}
+.ep{display:flex;flex-direction:column;overflow:hidden;flex:1;position:relative}
+.ep.hide{display:none!important}
+#left.layout-v .ep{min-height:50px;min-width:unset}
+#left.layout-h .ep{min-width:60px;min-height:unset}
+.ep-hdr{display:flex;align-items:center;gap:7px;padding:5px 10px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;cursor:grab;user-select:none;transition:background .12s}
+.ep-hdr:hover{background:#2d2f3f}.ep-hdr:active{cursor:grabbing}
+.drag-icon{display:flex;flex-direction:column;gap:2px;opacity:.35;transition:opacity .12s;flex-shrink:0}
+.ep-hdr:hover .drag-icon{opacity:.75}
+.drag-icon span{display:block;width:11px;height:2px;background:#6272a4;border-radius:1px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-js{background:#f1fa8c}.dot-html{background:#ff79c6}.dot-css{background:#8be9fd}
+.ep-label{font-size:12px;color:#6272a4;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ew{flex:1;overflow:hidden;min-height:0;min-width:0}
+.psplit{background:#383a4a;flex-shrink:0;z-index:20;transition:background .12s}
+.psplit:hover,.psplit.active{background:#bd93f9}
+#left.layout-v .psplit{height:5px;cursor:ns-resize}
+#left.layout-h .psplit{width:5px;cursor:ew-resize}
+#vsplit{width:5px;background:#383a4a;flex-shrink:0;cursor:ew-resize;z-index:20;transition:background .12s}
+#vsplit:hover,#vsplit.active{background:#bd93f9}
+#csplit{height:5px;background:#383a4a;flex-shrink:0;cursor:ns-resize;z-index:20;transition:background .12s}
+#csplit:hover,#csplit.active{background:#bd93f9}
+.drop-line{position:absolute;z-index:200;pointer-events:none;background:#bd93f9;box-shadow:0 0 8px #bd93f9}
+#left.layout-v .drop-line{left:0;right:0;height:3px}
+#left.layout-h .drop-line{top:0;bottom:0;width:3px}
+#drag-ghost{position:fixed;z-index:9999;pointer-events:none;background:#21222c;border:1px solid #bd93f9;border-radius:6px;padding:5px 12px;font-size:12px;color:#bd93f9;font-family:'JetBrains Mono',monospace;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px #00000080;white-space:nowrap}
+#right{display:flex;flex-direction:column;flex:1;min-width:80px;overflow:hidden}
+#pvwrap{flex:1;position:relative;overflow:hidden;min-height:60px}
+#pv{width:100%;height:100%;border:none;display:block;background:#fff}
+#pvcover{display:none;position:absolute;inset:0;z-index:50;cursor:inherit}
+#console{display:flex;flex-direction:column;height:180px;min-height:40px;overflow:hidden}
+#cbr{display:flex;align-items:center;padding:6px 14px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;gap:8px}
+.cb-lbl{font-size:11px;color:#6272a4;font-family:'Syne',system-ui;text-transform:uppercase;letter-spacing:.8px;flex:1}
+#co{flex:1;overflow-y:auto;padding:8px 14px;font-size:13.5px;line-height:1.8;background:#282a36}
+.lg{color:#f8f8f2}.lw{color:#ffb86c}.le{color:#ff5555}.li{color:#8be9fd}
+.ll{display:flex;gap:10px;padding:1px 0}.lp{color:#6272a4;flex-shrink:0;font-size:12px}
+#sd{width:8px;height:8px;border-radius:50%;background:#6272a4;flex-shrink:0;transition:background .25s}
+#sd.run{background:#ffb86c}#sd.ok{background:#50fa7b}#sd.err{background:#ff5555}
+
+/* ── CodeMirror Dracula ── */
+.ew .CodeMirror{height:100%!important;font-family:'JetBrains Mono',monospace!important;font-size:14px!important;line-height:1.75!important;background:#282a36!important;color:#f8f8f2!important}
+.ew .CodeMirror-gutters{background:#21222c!important;border-right:1px solid #44475a!important;min-width:46px!important}
+.ew .CodeMirror-linenumber{color:#6272a4!important;font-size:12px!important;padding:0 8px 0 4px!important}
+.ew .CodeMirror-cursor{border-left:2px solid #f8f8f2!important}
+.ew .CodeMirror-selected{background:#44475a80!important}
+.ew .CodeMirror-activeline-background{background:#ffffff05!important}
+.ew .CodeMirror-matchingbracket{color:#ff79c6!important;font-weight:bold!important}
+.ew .cm-keyword{color:#ff79c6!important}.ew .cm-def{color:#50fa7b!important}
+.ew .cm-variable{color:#f8f8f2!important}.ew .cm-variable-2{color:#8be9fd!important}
+.ew .cm-variable-3{color:#ffb86c!important}.ew .cm-property{color:#8be9fd!important}
+.ew .cm-operator{color:#ff79c6!important}.ew .cm-number{color:#bd93f9!important}
+.ew .cm-string{color:#f1fa8c!important}.ew .cm-string-2{color:#f1fa8c!important}
+.ew .cm-comment{color:#6272a4!important;font-style:italic!important}
+.ew .cm-atom{color:#bd93f9!important}.ew .cm-builtin{color:#50fa7b!important}
+.ew .cm-tag{color:#ff79c6!important}.ew .cm-attribute{color:#50fa7b!important}
+.ew .cm-qualifier{color:#50fa7b!important}.ew .cm-bracket{color:#f8f8f2!important}
+.ew .cm-error{background:#ff555430!important;color:#ff5555!important}
+.CodeMirror-hints{background:#21222c!important;border:1px solid #6272a4!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;font-size:13px!important;color:#f8f8f2!important;z-index:9999!important;padding:4px!important}
+.CodeMirror-hint{color:#f8f8f2!important;padding:5px 14px!important;border-radius:4px!important}
+.CodeMirror-hint-active{background:#44475a!important;color:#bd93f9!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#44475a;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#6272a4}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+</head>
+<body>
+
+<div id="bar">
+  <span id="logo">⬡ playground</span>
+  <button class="ibtn" id="ex-toggle-btn">📚 exercises</button>
+
+  <div class="bar-group">
+    <label>panels:</label>
+    <button class="ibtn vis" id="tog-js">JS</button>
+    <button class="ibtn vis" id="tog-html">HTML</button>
+    <button class="ibtn vis" id="tog-css">CSS</button>
+  </div>
+  <div class="bar-group">
+    <label>layout:</label>
+    <button class="ibtn on" id="lay-v">⊞ vertical</button>
+    <button class="ibtn" id="lay-h">⊟ horizontal</button>
+  </div>
+  <div class="sp"></div>
+  <button class="ibtn on" id="ar-btn">auto-run</button>
+  <button class="ibtn" id="clr-btn">clear</button>
+  <button class="rbtn" id="run-btn">▶ run</button>
+</div>
+<div id="ar-bar"><div id="ar-prog"></div></div>
+
+<div id="shell">
+  <!-- Exercises sidebar -->
+  <div id="ex-sidebar" class="closed">
+    <div id="ex-hdr">
+      <h2>JavaScript Exercises</h2>
+      <p>Click an exercise to load it into the editor</p>
+    </div>
+    <div id="ex-cats"></div>
+    <div id="ex-list"></div>
+    <div id="ex-detail">
+      <div id="ex-detail-hdr">
+        <span id="ex-detail-title">Exercise</span>
+        <button id="hint-toggle-btn" class="hint-btn" style="margin-top:0;padding:3px 9px">hint</button>
+        <button id="test-btn">▶ run tests</button>
+      </div>
+      <div id="ex-detail-body">
+        <div class="ex-full-desc" id="ex-full-desc"></div>
+        <div id="hint-box" class="hint-box"></div>
+        <div id="test-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main workspace -->
+  <div id="ws">
+    <div id="left" class="layout-v"></div>
+    <div id="vsplit"></div>
+    <div id="right">
+      <div id="pvwrap">
+        <iframe id="pv" sandbox="allow-scripts"></iframe>
+        <div id="pvcover"></div>
+      </div>
+      <div id="csplit"></div>
+      <div id="console">
+        <div id="cbr">
+          <span class="cb-lbl">console</span>
+          <div id="sd"></div>
+          <button class="ibtn" id="clrc-btn">clear</button>
+        </div>
+        <div id="co"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="drag-ghost"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   EXERCISES DATA
+═══════════════════════════════════════════════ */
+const EXERCISES = [
+  /* ── Basics ── */
+  {
+    id:1, cat:'Basics', title:'Hello World', diff:'easy',
+    desc:'Log "Hello, World!" to the console.',
+    fullDesc:'Use <code>console.log()</code> to print the string <code>"Hello, World!"</code> to the console.',
+    hint:'Try: console.log("Hello, World!")',
+    starter:`// Your first exercise!
+// Log "Hello, World!" to the console
+
+`,
+    tests:[
+      {desc:'Logs "Hello, World!"', fn: code => {
+        const logs=[];
+        const fake={log:(...a)=>logs.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}};
+        try{ new Function('console',code)(fake); }catch(e){return false;}
+        return logs.some(l=>l==='Hello, World!');
+      }}
+    ]
+  },
+  {
+    id:2, cat:'Basics', title:'Variables', diff:'easy',
+    desc:'Declare a variable and log its value.',
+    fullDesc:'Declare a variable called <code>name</code> using <code>let</code>, assign it your name as a string, then log it.',
+    hint:'let name = "Alice"; console.log(name);',
+    starter:`// Declare a variable called 'name' with your name
+// Then log it to the console
+
+`,
+    tests:[
+      {desc:'Declares a variable called name', fn: code => /let\s+name|const\s+name|var\s+name/.test(code)},
+      {desc:'Logs the variable', fn: code => {
+        const logs=[];
+        try{ new Function('console',code)({log:(...a)=>logs.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}}); }catch(e){return false;}
+        return logs.length>0&&logs[0].length>0;
+      }}
+    ]
+  },
+  {
+    id:3, cat:'Basics', title:'Data Types', diff:'easy',
+    desc:'Log the type of different values.',
+    fullDesc:'Use <code>typeof</code> to log the type of: a number, a string, and a boolean. You should see three lines in the console.',
+    hint:'console.log(typeof 42); // "number"',
+    starter:`// Use typeof to log the type of:
+// 1. A number (e.g. 42)
+// 2. A string (e.g. "hello")
+// 3. A boolean (e.g. true)
+
+`,
+    tests:[
+      {desc:'Logs "number"', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(x=>x.includes('number'))}},
+      {desc:'Logs "string"', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(x=>x.includes('string'))}},
+      {desc:'Logs "boolean"', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(x=>x.includes('boolean'))}}
+    ]
+  },
+
+  /* ── Functions ── */
+  {
+    id:4, cat:'Functions', title:'Add Two Numbers', diff:'easy',
+    desc:'Write a function that adds two numbers.',
+    fullDesc:'Write a function called <code>add(a, b)</code> that returns the sum of two numbers. Then log <code>add(3, 4)</code> — it should print <code>7</code>.',
+    hint:'function add(a, b) { return a + b; }',
+    starter:`// Write a function called add(a, b)
+// It should return the sum of a and b
+
+// Test it:
+// console.log(add(3, 4)); // should log 7
+
+`,
+    tests:[
+      {desc:'add(3, 4) returns 7', fn:code=>{try{const f=new Function(code+'\nreturn add;')();return f(3,4)===7;}catch(e){return false;}}},
+      {desc:'add(10, 5) returns 15', fn:code=>{try{const f=new Function(code+'\nreturn add;')();return f(10,5)===15;}catch(e){return false;}}},
+      {desc:'add(-1, 1) returns 0', fn:code=>{try{const f=new Function(code+'\nreturn add;')();return f(-1,1)===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:5, cat:'Functions', title:'Greet Someone', diff:'easy',
+    desc:'Write a function that returns a greeting string.',
+    fullDesc:'Write a function called <code>greet(name)</code> that returns the string <code>"Hello, [name]!"</code>. For example, <code>greet("Alice")</code> should return <code>"Hello, Alice!"</code>.',
+    hint:'Use a template literal: return `Hello, ${name}!`',
+    starter:`// Write a function called greet(name)
+// It should return "Hello, [name]!"
+
+`,
+    tests:[
+      {desc:'greet("Alice") returns "Hello, Alice!"', fn:code=>{try{const f=new Function(code+'\nreturn greet;')();return f('Alice')==='Hello, Alice!';}catch(e){return false;}}},
+      {desc:'greet("World") returns "Hello, World!"', fn:code=>{try{const f=new Function(code+'\nreturn greet;')();return f('World')==='Hello, World!';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:6, cat:'Functions', title:'Is Even', diff:'easy',
+    desc:'Write a function that checks if a number is even.',
+    fullDesc:'Write a function called <code>isEven(n)</code> that returns <code>true</code> if <code>n</code> is even and <code>false</code> if it is odd. Use the modulo operator <code>%</code>.',
+    hint:'return n % 2 === 0;',
+    starter:`// Write a function called isEven(n)
+// Return true if n is even, false if odd
+
+`,
+    tests:[
+      {desc:'isEven(4) returns true', fn:code=>{try{return new Function(code+'\nreturn isEven;')()(4)===true;}catch(e){return false;}}},
+      {desc:'isEven(7) returns false', fn:code=>{try{return new Function(code+'\nreturn isEven;')()(7)===false;}catch(e){return false;}}},
+      {desc:'isEven(0) returns true', fn:code=>{try{return new Function(code+'\nreturn isEven;')()(0)===true;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:7, cat:'Functions', title:'Max of Two', diff:'easy',
+    desc:'Return the larger of two numbers.',
+    fullDesc:'Write a function called <code>max(a, b)</code> that returns whichever of the two arguments is larger.',
+    hint:'You can use an if statement or the ternary operator: return a > b ? a : b;',
+    starter:`// Write a function called max(a, b)
+// Return the larger of the two numbers
+
+`,
+    tests:[
+      {desc:'max(3, 7) returns 7', fn:code=>{try{return new Function(code+'\nreturn max;')()(3,7)===7;}catch(e){return false;}}},
+      {desc:'max(10, 2) returns 10', fn:code=>{try{return new Function(code+'\nreturn max;')()(10,2)===10;}catch(e){return false;}}},
+      {desc:'max(5, 5) returns 5', fn:code=>{try{return new Function(code+'\nreturn max;')()(5,5)===5;}catch(e){return false;}}}
+    ]
+  },
+
+  /* ── Arrays ── */
+  {
+    id:8, cat:'Arrays', title:'Sum an Array', diff:'easy',
+    desc:'Write a function that sums all numbers in an array.',
+    fullDesc:'Write a function called <code>sum(arr)</code> that takes an array of numbers and returns their total. For example, <code>sum([1, 2, 3])</code> should return <code>6</code>.',
+    hint:'Use a for loop or arr.reduce((a, b) => a + b, 0)',
+    starter:`// Write a function called sum(arr)
+// Return the sum of all numbers in the array
+
+`,
+    tests:[
+      {desc:'sum([1,2,3]) returns 6', fn:code=>{try{return new Function(code+'\nreturn sum;')()([1,2,3])===6;}catch(e){return false;}}},
+      {desc:'sum([10,20,30]) returns 60', fn:code=>{try{return new Function(code+'\nreturn sum;')()([10,20,30])===60;}catch(e){return false;}}},
+      {desc:'sum([]) returns 0', fn:code=>{try{return new Function(code+'\nreturn sum;')()([])===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:9, cat:'Arrays', title:'Reverse an Array', diff:'easy',
+    desc:'Return a reversed copy of an array.',
+    fullDesc:'Write a function called <code>reverseArr(arr)</code> that returns a new array with the elements in reverse order. Do not mutate the original array.',
+    hint:'Try [...arr].reverse() or build a new array with a loop.',
+    starter:`// Write a function called reverseArr(arr)
+// Return a new array with elements in reverse order
+
+`,
+    tests:[
+      {desc:'reverseArr([1,2,3]) returns [3,2,1]', fn:code=>{try{const r=new Function(code+'\nreturn reverseArr;')()([1,2,3]);return JSON.stringify(r)==='[3,2,1]';}catch(e){return false;}}},
+      {desc:'reverseArr(["a","b","c"]) returns ["c","b","a"]', fn:code=>{try{const r=new Function(code+'\nreturn reverseArr;')()(['a','b','c']);return JSON.stringify(r)==='["c","b","a"]';}catch(e){return false;}}},
+      {desc:'Does not mutate original array', fn:code=>{try{const orig=[1,2,3];new Function('arr',code+'\nreturn reverseArr;')()(orig);return JSON.stringify(orig)==='[1,2,3]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:10, cat:'Arrays', title:'Find the Max', diff:'easy',
+    desc:'Find the largest number in an array.',
+    fullDesc:'Write a function called <code>findMax(arr)</code> that returns the largest number in an array. For example, <code>findMax([3, 1, 4, 1, 5, 9])</code> should return <code>9</code>.',
+    hint:'Try Math.max(...arr) or loop through comparing values.',
+    starter:`// Write a function called findMax(arr)
+// Return the largest number in the array
+
+`,
+    tests:[
+      {desc:'findMax([3,1,4,1,5,9]) returns 9', fn:code=>{try{return new Function(code+'\nreturn findMax;')()([3,1,4,1,5,9])===9;}catch(e){return false;}}},
+      {desc:'findMax([10,20,5]) returns 20', fn:code=>{try{return new Function(code+'\nreturn findMax;')()([10,20,5])===20;}catch(e){return false;}}},
+      {desc:'findMax([-1,-5,-2]) returns -1', fn:code=>{try{return new Function(code+'\nreturn findMax;')()([- 1,-5,-2])===-1;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:11, cat:'Arrays', title:'Filter Even Numbers', diff:'medium',
+    desc:'Return only even numbers from an array.',
+    fullDesc:'Write a function called <code>filterEven(arr)</code> that takes an array of numbers and returns a new array containing only the even numbers.',
+    hint:'Use arr.filter(n => n % 2 === 0)',
+    starter:`// Write a function called filterEven(arr)
+// Return a new array with only the even numbers
+
+`,
+    tests:[
+      {desc:'filterEven([1,2,3,4,5,6]) returns [2,4,6]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn filterEven;')()([1,2,3,4,5,6]))==='[2,4,6]';}catch(e){return false;}}},
+      {desc:'filterEven([1,3,5]) returns []', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn filterEven;')()([1,3,5]))==='[]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:12, cat:'Arrays', title:'Remove Duplicates', diff:'medium',
+    desc:'Remove duplicate values from an array.',
+    fullDesc:'Write a function called <code>unique(arr)</code> that returns a new array with all duplicate values removed. Order should be preserved.',
+    hint:'A Set automatically removes duplicates: return [...new Set(arr)]',
+    starter:`// Write a function called unique(arr)
+// Return a new array with duplicates removed
+
+`,
+    tests:[
+      {desc:'unique([1,2,2,3,3,3]) returns [1,2,3]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn unique;')()([1,2,2,3,3,3]))==='[1,2,3]';}catch(e){return false;}}},
+      {desc:'unique(["a","b","a"]) returns ["a","b"]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn unique;')()(['a','b','a']))==='["a","b"]';}catch(e){return false;}}}
+    ]
+  },
+
+  /* ── Strings ── */
+  {
+    id:13, cat:'Strings', title:'Reverse a String', diff:'easy',
+    desc:'Write a function that reverses a string.',
+    fullDesc:'Write a function called <code>reverseStr(str)</code> that returns the string with its characters in reverse order. For example, <code>reverseStr("hello")</code> returns <code>"olleh"</code>.',
+    hint:`Split into chars, reverse, join: return str.split('').reverse().join('')`,
+    starter:`// Write a function called reverseStr(str)
+// Return the string reversed
+
+`,
+    tests:[
+      {desc:`reverseStr("hello") returns "olleh"`, fn:code=>{try{return new Function(code+'\nreturn reverseStr;')()('hello')==='olleh';}catch(e){return false;}}},
+      {desc:`reverseStr("abc") returns "cba"`, fn:code=>{try{return new Function(code+'\nreturn reverseStr;')()('abc')==='cba';}catch(e){return false;}}},
+      {desc:`reverseStr("") returns ""`, fn:code=>{try{return new Function(code+'\nreturn reverseStr;')()('')==='';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:14, cat:'Strings', title:'Count Vowels', diff:'easy',
+    desc:'Count the number of vowels in a string.',
+    fullDesc:'Write a function called <code>countVowels(str)</code> that returns the number of vowel characters (a, e, i, o, u) in the string. Treat lowercase and uppercase the same.',
+    hint:`Convert to lowercase first, then filter: str.toLowerCase().split('').filter(c => 'aeiou'.includes(c)).length`,
+    starter:`// Write a function called countVowels(str)
+// Return the number of vowels (a, e, i, o, u)
+
+`,
+    tests:[
+      {desc:`countVowels("hello") returns 2`, fn:code=>{try{return new Function(code+'\nreturn countVowels;')()('hello')===2;}catch(e){return false;}}},
+      {desc:`countVowels("AEIOU") returns 5`, fn:code=>{try{return new Function(code+'\nreturn countVowels;')()('AEIOU')===5;}catch(e){return false;}}},
+      {desc:`countVowels("rhythm") returns 0`, fn:code=>{try{return new Function(code+'\nreturn countVowels;')()('rhythm')===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:15, cat:'Strings', title:'Is Palindrome', diff:'medium',
+    desc:'Check if a string reads the same forwards and backwards.',
+    fullDesc:'Write a function called <code>isPalindrome(str)</code> that returns <code>true</code> if the string is a palindrome (reads the same forwards and backwards), ignoring case. For example, <code>"Racecar"</code> should return <code>true</code>.',
+    hint:'Lowercase the string, then compare it to its reverse.',
+    starter:`// Write a function called isPalindrome(str)
+// Return true if the string is a palindrome (ignore case)
+
+`,
+    tests:[
+      {desc:`isPalindrome("racecar") returns true`, fn:code=>{try{return new Function(code+'\nreturn isPalindrome;')()('racecar')===true;}catch(e){return false;}}},
+      {desc:`isPalindrome("Racecar") returns true (case insensitive)`, fn:code=>{try{return new Function(code+'\nreturn isPalindrome;')()('Racecar')===true;}catch(e){return false;}}},
+      {desc:`isPalindrome("hello") returns false`, fn:code=>{try{return new Function(code+'\nreturn isPalindrome;')()('hello')===false;}catch(e){return false;}}}
+    ]
+  },
+
+  /* ── Objects ── */
+  {
+    id:16, cat:'Objects', title:'Create an Object', diff:'easy',
+    desc:'Create an object with name and age properties.',
+    fullDesc:'Create an object called <code>person</code> with two properties: <code>name</code> (a string) and <code>age</code> (a number). Then log the object to the console.',
+    hint:`const person = { name: "Alice", age: 30 };`,
+    starter:`// Create an object called 'person'
+// It should have 'name' and 'age' properties
+// Then log it
+
+`,
+    tests:[
+      {desc:'person object exists with name property', fn:code=>{try{const r=new Function(code+'\nreturn typeof person!=="undefined"?person:null;')();return r&&typeof r.name==='string'&&r.name.length>0;}catch(e){return false;}}},
+      {desc:'person has an age property (number)', fn:code=>{try{const r=new Function(code+'\nreturn typeof person!=="undefined"?person:null;')();return r&&typeof r.age==='number';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:17, cat:'Objects', title:'Object Keys', diff:'easy',
+    desc:'Log all the keys of an object.',
+    fullDesc:`Use <code>Object.keys()</code> to get all the keys of an object called <code>car</code> that has properties: <code>make</code>, <code>model</code>, and <code>year</code>. Log the array of keys.`,
+    hint:'console.log(Object.keys(car));',
+    starter:`// Create an object called 'car' with make, model, year
+// Then log all its keys using Object.keys()
+
+const car = {
+  make: 'Toyota',
+  model: 'Corolla',
+  year: 2020
+};
+
+`,
+    tests:[
+      {desc:'Logs an array of keys', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(a=>Array.isArray(a[0])&&a[0].includes('make'))}},
+      {desc:'Keys include make, model, year', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}const flat=JSON.stringify(l);return flat.includes('make')&&flat.includes('model')&&flat.includes('year')}}
+    ]
+  },
+  {
+    id:18, cat:'Objects', title:'Destructuring', diff:'medium',
+    desc:'Destructure properties from an object.',
+    fullDesc:`Given an object <code>user</code>, use destructuring to extract the <code>name</code> and <code>email</code> properties into variables, then log them separately on two lines.`,
+    hint:'const { name, email } = user;',
+    starter:`const user = {
+  name: 'Alice',
+  email: 'alice@example.com',
+  age: 28
+};
+
+// Destructure name and email from user
+// Then log each one separately
+
+`,
+    tests:[
+      {desc:'Logs the name', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(x=>x.includes('Alice'))}},
+      {desc:'Logs the email', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.some(x=>x.includes('alice@example.com'))}},
+      {desc:'Uses destructuring syntax', fn:code=>/const\s*\{[^}]*name[^}]*\}|let\s*\{[^}]*name[^}]*\}/.test(code)}
+    ]
+  },
+
+  /* ── Loops ── */
+  {
+    id:19, cat:'Loops', title:'FizzBuzz', diff:'medium',
+    desc:'The classic FizzBuzz challenge.',
+    fullDesc:`Loop from 1 to 20. For each number: log <code>"Fizz"</code> if divisible by 3, <code>"Buzz"</code> if divisible by 5, <code>"FizzBuzz"</code> if divisible by both, otherwise log the number itself.`,
+    hint:'Check FizzBuzz first (% 3 === 0 && % 5 === 0), then Fizz, then Buzz.',
+    starter:`// FizzBuzz: loop from 1 to 20
+// Log "Fizz" for multiples of 3
+// Log "Buzz" for multiples of 5
+// Log "FizzBuzz" for multiples of both
+// Otherwise log the number
+
+`,
+    tests:[
+      {desc:'Logs "Fizz" for 3', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l[2]==='Fizz'}},
+      {desc:'Logs "Buzz" for 5', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l[4]==='Buzz'}},
+      {desc:'Logs "FizzBuzz" for 15', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l[14]==='FizzBuzz'}},
+      {desc:'Logs 20 items total', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.length===20}}
+    ]
+  },
+  {
+    id:20, cat:'Loops', title:'Multiplication Table', diff:'easy',
+    desc:'Log the 5 times table up to 10.',
+    fullDesc:'Use a loop to log each line of the 5 times table from 1×5 to 10×5. Each line should look like: <code>"1 x 5 = 5"</code>.',
+    hint:'for (let i = 1; i <= 10; i++) { console.log(`${i} x 5 = ${i*5}`); }',
+    starter:`// Log the 5 times table from 1 to 10
+// Format: "1 x 5 = 5", "2 x 5 = 10", etc.
+
+`,
+    tests:[
+      {desc:'Logs 10 lines', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l.length===10}},
+      {desc:'First line contains "5"', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l[0]&&l[0].includes('5')}},
+      {desc:'Last line contains "50"', fn:code=>{const l=[];try{new Function('console',code)({log:(...a)=>l.push(a.join(' ')),warn:()=>{},error:()=>{},info:()=>{}})}catch(e){return false;}return l[9]&&l[9].includes('50')}}
+    ]
+  },
+
+  /* ── Challenges ── */
+  {
+    id:21, cat:'Challenges', title:'Fibonacci', diff:'medium',
+    desc:'Return the nth Fibonacci number.',
+    fullDesc:`Write a function called <code>fibonacci(n)</code> that returns the nth number in the Fibonacci sequence. The sequence starts: 0, 1, 1, 2, 3, 5, 8, 13... where each number is the sum of the two before it. <code>fibonacci(0)</code> = 0, <code>fibonacci(1)</code> = 1, <code>fibonacci(7)</code> = 13.`,
+    hint:'Use a loop: start with a=0, b=1, then swap: [a,b] = [b, a+b] n times.',
+    starter:`// Write a function called fibonacci(n)
+// Return the nth Fibonacci number (0-indexed)
+// fibonacci(0) = 0, fibonacci(1) = 1, fibonacci(7) = 13
+
+`,
+    tests:[
+      {desc:'fibonacci(0) returns 0', fn:code=>{try{return new Function(code+'\nreturn fibonacci;')()(0)===0;}catch(e){return false;}}},
+      {desc:'fibonacci(1) returns 1', fn:code=>{try{return new Function(code+'\nreturn fibonacci;')()(1)===1;}catch(e){return false;}}},
+      {desc:'fibonacci(7) returns 13', fn:code=>{try{return new Function(code+'\nreturn fibonacci;')()(7)===13;}catch(e){return false;}}},
+      {desc:'fibonacci(10) returns 55', fn:code=>{try{return new Function(code+'\nreturn fibonacci;')()(10)===55;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:22, cat:'Challenges', title:'Flatten Array', diff:'medium',
+    desc:'Flatten a nested array one level deep.',
+    fullDesc:`Write a function called <code>flatten(arr)</code> that takes an array which may contain nested arrays and returns a new flat array, one level deep. For example, <code>flatten([1, [2, 3], [4, 5]])</code> returns <code>[1, 2, 3, 4, 5]</code>.`,
+    hint:'Try arr.flat() or arr.reduce((acc, val) => acc.concat(val), [])',
+    starter:`// Write a function called flatten(arr)
+// Flatten one level of nesting
+// flatten([1, [2, 3], [4, 5]]) => [1, 2, 3, 4, 5]
+
+`,
+    tests:[
+      {desc:'flatten([1,[2,3],[4,5]]) returns [1,2,3,4,5]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn flatten;')()([1,[2,3],[4,5]]))==='[1,2,3,4,5]';}catch(e){return false;}}},
+      {desc:'flatten([[1],[2],[3]]) returns [1,2,3]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn flatten;')()([[1],[2],[3]]))==='[1,2,3]';}catch(e){return false;}}},
+      {desc:'flatten([1,2,3]) returns [1,2,3]', fn:code=>{try{return JSON.stringify(new Function(code+'\nreturn flatten;')()([1,2,3]))==='[1,2,3]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:23, cat:'Challenges', title:'Group By', diff:'hard',
+    desc:'Group an array of objects by a property.',
+    fullDesc:`Write a function called <code>groupBy(arr, key)</code> that groups an array of objects by a given key. It should return an object where each key is a unique value of the property, and the value is an array of items with that property value.`,
+    hint:'Use reduce: arr.reduce((acc, item) => { (acc[item[key]] = acc[item[key]] || []).push(item); return acc; }, {})',
+    starter:`// Write a function called groupBy(arr, key)
+// Group array items by a property
+// Example:
+// groupBy([{type:'fruit',name:'apple'},{type:'veg',name:'carrot'},{type:'fruit',name:'pear'}], 'type')
+// => { fruit: [{...},{...}], veg: [{...}] }
+
+`,
+    tests:[
+      {desc:'Groups by type correctly', fn:code=>{try{const f=new Function(code+'\nreturn groupBy;')();const r=f([{type:'a',v:1},{type:'b',v:2},{type:'a',v:3}],'type');return Array.isArray(r.a)&&r.a.length===2&&Array.isArray(r.b)&&r.b.length===1;}catch(e){return false;}}},
+      {desc:'Returns an object', fn:code=>{try{const f=new Function(code+'\nreturn groupBy;')();return typeof f([{x:1}],'x')==='object';}catch(e){return false;}}}
+    ]
+  },
+];
+
+/* ── Categories ── */
+const CATS=['All',...new Set(EXERCISES.map(e=>e.cat))];
+const done=new Set();
+let activeCat='All';
+let activeEx=null;
+
+/* ── Sidebar open/close ── */
+let sidebarOpen=false;
+const sidebar=document.getElementById('ex-sidebar');
+document.getElementById('ex-toggle-btn').addEventListener('click',()=>{
+  sidebarOpen=!sidebarOpen;
+  sidebar.classList.toggle('closed',!sidebarOpen);
+  document.getElementById('ex-toggle-btn').classList.toggle('ex-on',sidebarOpen);
+  setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),220);
+});
+
+/* ── Render category buttons ── */
+const catEl=document.getElementById('ex-cats');
+CATS.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='cat-btn'+(c==='All'?' on':'');
+  b.textContent=c;
+  b.addEventListener('click',()=>{
+    activeCat=c;
+    catEl.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderExList();
+  });
+  catEl.appendChild(b);
+});
+
+/* ── Render exercise list ── */
+function renderExList(){
+  const list=document.getElementById('ex-list');
+  list.innerHTML='';
+  const filtered=activeCat==='All'?EXERCISES:EXERCISES.filter(e=>e.cat===activeCat);
+  filtered.forEach(ex=>{
+    const d=document.createElement('div');
+    d.className='ex-item'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'');
+    d.innerHTML=`<div class="ex-title"><span class="tick">✓</span>${ex.title}</div>
+      <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${ex.diff}</div>
+      <div class="ex-desc">${ex.desc}</div>`;
+    d.addEventListener('click',()=>loadExercise(ex));
+    list.appendChild(d);
+  });
+}
+
+/* ── Load exercise into editor ── */
+function loadExercise(ex){
+  activeEx=ex;
+  // Set starter code in JS editor
+  if(eds.js){eds.js.setValue(ex.starter);codes.js=ex.starter;}
+  // Show detail panel
+  const detail=document.getElementById('ex-detail');
+  detail.classList.add('open');
+  document.getElementById('ex-detail-title').textContent=ex.title;
+  document.getElementById('ex-full-desc').innerHTML=ex.fullDesc;
+  document.getElementById('hint-box').textContent=ex.hint;
+  document.getElementById('hint-box').classList.remove('show');
+  // Render pending tests
+  renderTests(ex.tests.map(t=>({...t,state:'pending'})));
+  renderExList();
+  // Focus JS editor
+  if(eds.js)setTimeout(()=>eds.js.focus(),100);
+}
+
+/* ── Render test results ── */
+function renderTests(results){
+  const el=document.getElementById('test-results');
+  el.innerHTML='';
+  results.forEach(r=>{
+    const d=document.createElement('div');
+    d.className='test-result '+r.state;
+    const icon=r.state==='pass'?'✓':r.state==='fail'?'✕':'○';
+    d.innerHTML=`<span class="test-icon">${icon}</span><span>${r.desc}</span>`;
+    el.appendChild(d);
+  });
+}
+
+/* ── Run tests ── */
+document.getElementById('test-btn').addEventListener('click',()=>{
+  if(!activeEx)return;
+  const code=eds.js?eds.js.getValue():codes.js;
+  const results=activeEx.tests.map(t=>{
+    let passed=false;
+    try{passed=t.fn(code);}catch(e){passed=false;}
+    return{...t,state:passed?'pass':'fail'};
+  });
+  renderTests(results);
+  const allPass=results.every(r=>r.state==='pass');
+  if(allPass){
+    done.add(activeEx.id);
+    renderExList();
+    addLog('li',`✓ All tests passed for "${activeEx.title}"! 🎉`);
+  } else {
+    const n=results.filter(r=>r.state==='fail').length;
+    addLog('lw',`${n} test${n>1?'s':''} failing for "${activeEx.title}"`);
+  }
+});
+
+/* ── Hint toggle ── */
+document.getElementById('hint-toggle-btn').addEventListener('click',()=>{
+  document.getElementById('hint-box').classList.toggle('show');
+});
+
+/* ── Init sidebar ── */
+renderExList();
+
+/* ═══════════════════════════════════════════════
+   DEFAULT CODE
+═══════════════════════════════════════════════ */
+const CODE={
+  js:`// ⬡ Playground ready!
+// Click "📚 exercises" to load coding challenges
+// Ctrl+Space = autocomplete  |  shorthand + Tab = Emmet
+
+console.log('Welcome to the playground!');`,
+  html:`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview</title>
+</head>
+<body>
+  <!-- HTML goes here -->
+</body>
+</html>`,
+  css:`body {
+  font-family: system-ui, sans-serif;
+  padding: 20px;
+  background: #282a36;
+  color: #f8f8f2;
+}`
+};
+
+/* ── Emmet ── */
+const EH={'!':'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>|</title>\n</head>\n<body>\n  \n</body>\n</html>','div':'<div>|</div>','span':'<span>|</span>','p':'<p>|</p>','a':'<a href="|"></a>','img':'<img src="|" alt="">','ul':'<ul>\n  <li>|</li>\n</ul>','ol':'<ol>\n  <li>|</li>\n</ol>','li':'<li>|</li>','h1':'<h1>|</h1>','h2':'<h2>|</h2>','h3':'<h3>|</h3>','h4':'<h4>|</h4>','h5':'<h5>|</h5>','h6':'<h6>|</h6>','section':'<section>|</section>','article':'<article>|</article>','header':'<header>|</header>','footer':'<footer>|</footer>','nav':'<nav>|</nav>','main':'<main>|</main>','form':'<form action="|" method="post"></form>','input':'<input type="text" name="|" placeholder="">','button':'<button type="button">|</button>','canvas':'<canvas id="|" width="400" height="300"></canvas>','select':'<select name="|"><option value=""></option></select>','textarea':'<textarea name="|" rows="4"></textarea>','table':'<table>\n  <tr>\n    <td>|</td>\n  </tr>\n</table>','link':'<link rel="stylesheet" href="|">','script':'<script src="|"><\/script>','meta':'<meta name="|" content="">',};
+const EC={'m':'margin: |;','mt':'margin-top: |;','mr':'margin-right: |;','mb':'margin-bottom: |;','ml':'margin-left: |;','p':'padding: |;','pt':'padding-top: |;','pr':'padding-right: |;','pb':'padding-bottom: |;','pl':'padding-left: |;','w':'width: |;','h':'height: |;','mw':'max-width: |;','wf':'width: 100%;','hf':'height: 100%;','bg':'background: |;','bgc':'background-color: |;','c':'color: |;','fs':'font-size: |;','fw':'font-weight: |;','ff':'font-family: |;','lh':'line-height: |;','df':'display: flex;','dg':'display: grid;','dn':'display: none;','db':'display: block;','dib':'display: inline-block;','jcc':'justify-content: center;','jcsb':'justify-content: space-between;','jcsa':'justify-content: space-around;','aic':'align-items: center;','aifs':'align-items: flex-start;','aife':'align-items: flex-end;','fdc':'flex-direction: column;','f1':'flex: 1;','fww':'flex-wrap: wrap;','posa':'position: absolute;','posr':'position: relative;','posf':'position: fixed;','poss':'position: sticky;','t':'top: |;','r':'right: |;','b':'bottom: |;','l':'left: |;','br':'border-radius: |;','brd':'border: 1px solid |;','bn':'border: none;','tac':'text-align: center;','tar':'text-align: right;','tdn':'text-decoration: none;','ttu':'text-transform: uppercase;','ovh':'overflow: hidden;','ova':'overflow: auto;','curp':'cursor: pointer;','op':'opacity: |;','z':'z-index: |;','tra':'transition: all 0.3s ease;','bs':'box-shadow: |;','gap':'gap: |;','gtc':'grid-template-columns: |;',};
+
+function doEmmet(cm,lang){const cur=cm.getCursor();const before=cm.getLine(cur.line).slice(0,cur.ch);const m=before.match(/[\w!]+$/);if(!m)return false;const tpl=(lang==='css'?EC:EH)[m[0]];if(!tpl)return false;const from={line:cur.line,ch:cur.ch-m[0].length};const ci=tpl.indexOf('|');const expanded=tpl.replace('|','');const lines=expanded.split('\n');let tl=from.line,tc=from.ch,left=ci>=0?ci:expanded.length;for(let i=0;i<lines.length;i++){if(left<=lines[i].length){tl=from.line+i;tc=(i===0?from.ch:0)+left;break;}left-=lines[i].length+1;}cm.replaceRange(expanded,from,cur);cm.setCursor({line:tl,ch:tc});return true;}
+
+/* ── Panel state ── */
+const PANEL_META={js:{label:'script.js',dotClass:'dot-js',mode:{name:'javascript',globalVars:true}},html:{label:'index.html',dotClass:'dot-html',mode:'htmlmixed'},css:{label:'style.css',dotClass:'dot-css',mode:'css'}};
+let panelOrder=['js','html','css'];
+const vis={js:true,html:true,css:true};
+const codes={js:CODE.js,html:CODE.html,css:CODE.css};
+const eds={};
+let layout='v';
+const leftEl=document.getElementById('left');
+const pvcover=document.getElementById('pvcover');
+const ghost=document.getElementById('drag-ghost');
+
+function makeEd(lang){
+  const cm=CodeMirror(document.getElementById('ew-'+lang),{value:codes[lang],mode:PANEL_META[lang].mode,lineNumbers:true,autoCloseBrackets:true,matchBrackets:true,autoCloseTags:true,lineWrapping:false,extraKeys:{'Ctrl-Space':'autocomplete','Tab':cm=>{if(!doEmmet(cm,lang))cm.execCommand('indentMore');}}});
+  cm.on('change',(_,ch)=>{codes[lang]=cm.getValue();if(ch.origin!=='setValue')scheduleRun();});
+  cm.on('inputRead',()=>{const hf=lang==='js'?CodeMirror.hint.javascript:lang==='css'?CodeMirror.hint.css:CodeMirror.hint.html;cm.showHint({hint:hf,completeSingle:false});});
+  return cm;
+}
+
+function renderPanels(){
+  Array.from(leftEl.querySelectorAll('.ep,.psplit')).forEach(el=>el.remove());
+  panelOrder.forEach((lang,i)=>{
+    const ep=document.createElement('div');
+    ep.className='ep'+(vis[lang]?'':' hide');ep.id='ep-'+lang;ep.dataset.lang=lang;
+    const meta=PANEL_META[lang];
+    ep.innerHTML=`<div class="ep-hdr" id="hdr-${lang}"><div class="drag-icon"><span></span><span></span><span></span></div><div class="dot ${meta.dotClass}"></div><span class="ep-label">${meta.label}</span></div><div class="ew" id="ew-${lang}"></div>`;
+    leftEl.appendChild(ep);
+    if(i<panelOrder.length-1){const s=document.createElement('div');s.className='psplit';s.dataset.idx=i;leftEl.appendChild(s);}
+  });
+  panelOrder.forEach(lang=>{
+    if(!eds[lang]){eds[lang]=makeEd(lang);}
+    else{document.getElementById('ew-'+lang).appendChild(eds[lang].getWrapperElement());eds[lang].refresh();}
+    document.getElementById('hdr-'+lang).addEventListener('mousedown',onHdrDown);
+  });
+  leftEl.querySelectorAll('.psplit').forEach(s=>{
+    s.addEventListener('mousedown',e=>{
+      e.preventDefault();e.stopPropagation();
+      const allItems=Array.from(leftEl.querySelectorAll('.ep:not(.hide),.psplit'));
+      const idx=allItems.indexOf(s);const panA=allItems[idx-1];const panB=allItems[idx+1];
+      if(!panA||!panB)return;
+      if(layout==='v')startDrag('ph',e,{panA,panB,startA:panA.getBoundingClientRect().height,startB:panB.getBoundingClientRect().height});
+      else startDrag('pw',e,{panA,panB,startA:panA.getBoundingClientRect().width,startB:panB.getBoundingClientRect().width});
+      s.classList.add('active');
+    });
+  });
+  updateSplitters();
+  setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),10);
+}
+
+function updateSplitters(){
+  leftEl.querySelectorAll('.psplit').forEach(s=>{
+    const all=Array.from(leftEl.querySelectorAll('.ep,.psplit'));const idx=all.indexOf(s);
+    const aVis=all[idx-1]&&!all[idx-1].classList.contains('hide');
+    const bVis=all[idx+1]&&!all[idx+1].classList.contains('hide');
+    s.style.display=(aVis&&bVis)?'':'none';
+  });
+}
+
+document.getElementById('lay-v').addEventListener('click',()=>setLayout('v'));
+document.getElementById('lay-h').addEventListener('click',()=>setLayout('h'));
+function setLayout(l){
+  layout=l;leftEl.classList.toggle('layout-v',l==='v');leftEl.classList.toggle('layout-h',l==='h');
+  document.getElementById('lay-v').classList.toggle('on',l==='v');
+  document.getElementById('lay-h').classList.toggle('on',l==='h');
+  leftEl.querySelectorAll('.ep').forEach(ep=>{ep.style.flex='1';ep.style.height='';ep.style.width='';});
+  setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),10);
+}
+
+['js','html','css'].forEach(l=>{
+  document.getElementById('tog-'+l).addEventListener('click',()=>{
+    vis[l]=!vis[l];document.getElementById('tog-'+l).classList.toggle('vis',vis[l]);
+    const ep=document.getElementById('ep-'+l);
+    if(ep){ep.classList.toggle('hide',!vis[l]);ep.style.flex='1';ep.style.height='';ep.style.width='';}
+    updateSplitters();setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),10);
+  });
+});
+
+/* ── Drag state ── */
+let drag=null,reorder=null;
+function startDrag(type,e,extra){
+  e.preventDefault();e.stopPropagation();
+  drag={type,startX:e.clientX,startY:e.clientY,...extra};
+  pvcover.style.display='block';document.body.style.userSelect='none';
+  document.body.style.cursor=(type==='v'||type==='pw')?'ew-resize':'ns-resize';
+}
+document.getElementById('vsplit').addEventListener('mousedown',e=>{startDrag('v',e,{startW:leftEl.getBoundingClientRect().width});document.getElementById('vsplit').classList.add('active');});
+document.getElementById('csplit').addEventListener('mousedown',e=>{startDrag('c',e,{startH:document.getElementById('console').getBoundingClientRect().height});document.getElementById('csplit').classList.add('active');});
+
+function onHdrDown(e){
+  if(e.target.tagName==='BUTTON')return;
+  const lang=e.currentTarget.id.replace('hdr-','');
+  reorder={lang,startX:e.clientX,startY:e.clientY,moved:false};
+  ghost.innerHTML='';
+  const d=document.createElement('div');d.className='dot '+PANEL_META[lang].dotClass;d.style.cssText='width:8px;height:8px;border-radius:50%;flex-shrink:0';
+  ghost.appendChild(d);ghost.appendChild(document.createTextNode(' '+PANEL_META[lang].label));
+  ghost.style.cssText=`display:flex;left:${e.clientX+14}px;top:${e.clientY-10}px`;
+  pvcover.style.display='block';document.body.style.userSelect='none';e.preventDefault();
+}
+
+function getDropIndex(mx,my){
+  const panels=panelOrder.map(l=>document.getElementById('ep-'+l)).filter(Boolean);
+  if(layout==='v'){for(let i=0;i<panels.length;i++){const r=panels[i].getBoundingClientRect();if(my<r.top+r.height/2)return i;}
+  }else{for(let i=0;i<panels.length;i++){const r=panels[i].getBoundingClientRect();if(mx<r.left+r.width/2)return i;}}
+  return panels.length;
+}
+
+document.addEventListener('mousemove',e=>{
+  if(reorder){
+    const dx=Math.abs(e.clientX-reorder.startX),dy=Math.abs(e.clientY-reorder.startY);
+    if(dx>5||dy>5)reorder.moved=true;
+    if(!reorder.moved)return;
+    ghost.style.left=(e.clientX+14)+'px';ghost.style.top=(e.clientY-10)+'px';
+    leftEl.querySelectorAll('.drop-line').forEach(el=>el.remove());
+    const dropIdx=getDropIndex(e.clientX,e.clientY);
+    const panels=panelOrder.map(l=>document.getElementById('ep-'+l)).filter(Boolean);
+    const lr=leftEl.getBoundingClientRect();
+    const line=document.createElement('div');line.className='drop-line';
+    if(layout==='v'){let top=dropIdx>=panels.length?(panels[panels.length-1]?.getBoundingClientRect().bottom-lr.top||0):(panels[dropIdx].getBoundingClientRect().top-lr.top);line.style.top=top+'px';}
+    else{let lft=dropIdx>=panels.length?(panels[panels.length-1]?.getBoundingClientRect().right-lr.left||0):(panels[dropIdx].getBoundingClientRect().left-lr.left);line.style.left=lft+'px';}
+    leftEl.appendChild(line);return;
+  }
+  if(!drag)return;
+  if(drag.type==='v'){const ws=document.getElementById('ws');const dx=e.clientX-drag.startX;const newW=Math.max(120,Math.min(ws.getBoundingClientRect().width-120,drag.startW+dx));leftEl.style.width=newW+'px';leftEl.style.flex='none';Object.values(eds).forEach(cm=>cm.refresh());return;}
+  if(drag.type==='ph'){const dy=e.clientY-drag.startY;const total=drag.startA+drag.startB;const newA=Math.max(50,Math.min(total-50,drag.startA+dy));drag.panA.style.flex='none';drag.panA.style.height=newA+'px';drag.panB.style.flex='1';drag.panB.style.height='';Object.values(eds).forEach(cm=>cm.refresh());return;}
+  if(drag.type==='pw'){const dx=e.clientX-drag.startX;const total=drag.startA+drag.startB;const newA=Math.max(60,Math.min(total-60,drag.startA+dx));drag.panA.style.flex='none';drag.panA.style.width=newA+'px';drag.panB.style.flex='1';drag.panB.style.width='';Object.values(eds).forEach(cm=>cm.refresh());return;}
+  if(drag.type==='c'){const con=document.getElementById('console');const dy=e.clientY-drag.startY;const newH=Math.max(40,Math.min(600,drag.startH-dy));con.style.height=newH+'px';con.style.flex='none';}
+});
+
+document.addEventListener('mouseup',e=>{
+  if(reorder){
+    ghost.style.display='none';leftEl.querySelectorAll('.drop-line').forEach(el=>el.remove());
+    pvcover.style.display='none';document.body.style.userSelect='';
+    if(reorder.moved){
+      const dropIdx=getDropIndex(e.clientX,e.clientY);const fromIdx=panelOrder.indexOf(reorder.lang);
+      if(fromIdx!==-1){
+        const newOrder=panelOrder.filter(l=>l!==reorder.lang);
+        const insertAt=dropIdx>fromIdx?dropIdx-1:dropIdx;
+        newOrder.splice(Math.max(0,Math.min(newOrder.length,insertAt)),0,reorder.lang);
+        panelOrder=newOrder;
+        const sizes={};panelOrder.forEach(l=>{const ep=document.getElementById('ep-'+l);if(ep){const r=ep.getBoundingClientRect();sizes[l]={w:r.width,h:r.height};}});
+        renderPanels();
+        panelOrder.forEach(l=>{const ep=document.getElementById('ep-'+l);if(ep&&sizes[l]){if(layout==='v'){ep.style.flex='none';ep.style.height=sizes[l].h+'px';}else{ep.style.flex='none';ep.style.width=sizes[l].w+'px';}}});
+      }
+    }
+    reorder=null;return;
+  }
+  if(!drag)return;
+  leftEl.querySelectorAll('.psplit.active').forEach(s=>s.classList.remove('active'));
+  document.getElementById('vsplit').classList.remove('active');
+  document.getElementById('csplit').classList.remove('active');
+  drag=null;pvcover.style.display='none';document.body.style.userSelect='';document.body.style.cursor='';
+});
+
+/* ── Auto-run ── */
+const prog=document.getElementById('ar-prog');const arBtn=document.getElementById('ar-btn');
+let autoRun=true,arTimer=null;const DELAY=1200;
+function scheduleRun(){if(!autoRun)return;clearTimeout(arTimer);prog.style.transition='none';prog.style.width='0%';requestAnimationFrame(()=>{prog.style.transition=`width ${DELAY}ms linear`;prog.style.width='100%';});arTimer=setTimeout(()=>{prog.style.transition='none';prog.style.width='0%';run();},DELAY);}
+arBtn.addEventListener('click',()=>{autoRun=!autoRun;arBtn.classList.toggle('on',autoRun);if(!autoRun){clearTimeout(arTimer);prog.style.width='0%';}});
+
+/* ── Run ── */
+const co=document.getElementById('co');const sd=document.getElementById('sd');const pv=document.getElementById('pv');
+function addLog(cls,txt){const d=document.createElement('div');d.className='ll';const p=document.createElement('span');p.className='lp';p.textContent=cls==='le'?'✕':cls==='lw'?'!':cls==='li'?'i':'›';const s=document.createElement('span');s.className=cls;s.textContent=txt;d.appendChild(p);d.appendChild(s);co.appendChild(d);co.scrollTop=co.scrollHeight;}
+function clearCo(){co.innerHTML='';sd.className='';}
+function run(){
+  Object.keys(codes).forEach(l=>{if(eds[l])codes[l]=eds[l].getValue();});clearCo();sd.className='run';
+  const ic=`<script>const _f=x=>{try{return typeof x==='object'?JSON.stringify(x,null,2):String(x)}catch{return String(x)}};const _l=(t,...a)=>window.parent.postMessage({type:'con',lv:t,tx:a.map(_f).join(' ')},'*');console.log=(...a)=>_l('lg',...a);console.warn=(...a)=>_l('lw',...a);console.error=(...a)=>_l('le',...a);console.info=(...a)=>_l('li',...a);window.onerror=(m,s,l)=>{_l('le',m+' (line '+l+')');return true;};<\/script>`;
+  let base=codes.html;if(!base.includes('<html'))base=`<!DOCTYPE html><html><head></head><body>${base}</body></html>`;
+  const final=base.replace('</head>',`<style>${codes.css}</style></head>`).replace('<head>','<head>'+ic).replace('</body>',`<script>\n${codes.js}\n<\/script></body>`);
+  pv.srcdoc=final;setTimeout(()=>{if(sd.className==='run')sd.className='ok';},700);
+}
+window.addEventListener('message',e=>{if(e.data?.type==='con'){addLog(e.data.lv,e.data.tx);if(e.data.lv==='le')sd.className='err';}});
+document.getElementById('run-btn').addEventListener('click',run);
+document.getElementById('clr-btn').addEventListener('click',()=>{Object.keys(codes).forEach(l=>{codes[l]='';if(eds[l])eds[l].setValue('');});});
+document.getElementById('clrc-btn').addEventListener('click',clearCo);
+
+/* ── Init ── */
+renderPanels();run();
+</script>
+</body>
+</html>
