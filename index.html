@@ -40,6 +40,8 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 #ex-hdr{padding:12px 14px 8px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0}
 #ex-hdr h2{font-family:'Syne',system-ui;font-size:13px;font-weight:600;color:#ffb86c;letter-spacing:.3px}
 #ex-hdr p{font-size:11px;color:#6272a4;margin-top:3px;font-family:'Syne',system-ui}
+#progress-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:7px}
+#progress-summary{font-size:10.5px;color:#50fa7b;font-family:'Syne',system-ui}
 
 /* category tabs */
 #ex-cats{display:flex;gap:4px;padding:8px 10px;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;flex-wrap:wrap}
@@ -62,6 +64,10 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .ex-diff{font-size:10px;margin-top:3px;font-family:'Syne',system-ui}
 .diff-easy{color:#50fa7b}.diff-med{color:#ffb86c}.diff-hard{color:#ff5555}
 .ex-desc{font-size:11px;color:#6272a4;margin-top:4px;line-height:1.5;font-family:'Syne',system-ui}
+.level-group{margin-bottom:10px}
+.level-header{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:4px 4px 8px;margin:2px 0 6px;border-bottom:1px solid #383a4a}
+.level-name{font-size:11px;color:#f8f8f2;font-family:'Syne',system-ui;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.level-note{font-size:10.5px;color:#6272a4;font-family:'Syne',system-ui;line-height:1.35;flex:1 1 170px;text-align:right}
 
 /* ── Exercise detail / tests panel ── */
 #ex-detail{
@@ -200,7 +206,11 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
   <div id="ex-sidebar" class="closed">
     <div id="ex-hdr">
       <h2>JavaScript Exercises</h2>
-      <p>Click an exercise to load it into the editor</p>
+      <p>Progress from fundamentals to advanced patterns</p>
+      <div id="progress-row">
+        <span id="progress-summary">0/0 completed</span>
+        <button id="reset-progress-btn" class="hint-btn" style="margin-top:0;padding:3px 8px">reset progress</button>
+      </div>
     </div>
     <div id="ex-cats"></div>
     <div id="ex-list"></div>
@@ -247,9 +257,15 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
    EXERCISES DATA
 ═══════════════════════════════════════════════ */
 const EXERCISES = [
+
+  /* ════════════════════════════════════════
+     LEVEL 1 — FUNDAMENTALS
+  ════════════════════════════════════════ */
+
   /* ── Basics ── */
   {
     id:1, cat:'Basics', title:'Hello World', diff:'easy',
+    level:'Fundamentals',
     desc:'Log "Hello, World!" to the console.',
     fullDesc:'Use <code>console.log()</code> to print the string <code>"Hello, World!"</code> to the console.',
     hint:'Try: console.log("Hello, World!")',
@@ -633,11 +649,646 @@ const car = {
       {desc:'Returns an object', fn:code=>{try{const f=new Function(code+'\nreturn groupBy;')();return typeof f([{x:1}],'x')==='object';}catch(e){return false;}}}
     ]
   },
+  {
+    id:24, cat:'Basics', title:'Grade Score', diff:'easy',
+    desc:'Convert a numeric score into a letter grade.',
+    fullDesc:`Write a function called <code>gradeScore(score)</code> that returns <code>"A"</code> for 90 and above, <code>"B"</code> for 80-89, <code>"C"</code> for 70-79, and <code>"F"</code> for anything below 70.`,
+    hint:'Use an if / else if chain.',
+    starter:`// Write a function called gradeScore(score)
+// Return "A", "B", "C", or "F"
+
+`,
+    tests:[
+      {desc:'95 becomes A', fn:code=>{try{return getExerciseFn(code,'gradeScore')(95)==='A';}catch(e){return false;}}},
+      {desc:'82 becomes B', fn:code=>{try{return getExerciseFn(code,'gradeScore')(82)==='B';}catch(e){return false;}}},
+      {desc:'61 becomes F', fn:code=>{try{return getExerciseFn(code,'gradeScore')(61)==='F';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:25, cat:'Strings', title:'Count Character', diff:'easy',
+    desc:'Count how many times a character appears in a string.',
+    fullDesc:`Write a function called <code>countChar(str, char)</code> that returns how many times <code>char</code> appears in <code>str</code>. Keep the comparison case-sensitive.`,
+    hint:'Loop through the string or use split(char).length - 1.',
+    starter:`// Write a function called countChar(str, char)
+// Return how many times char appears in str
+
+`,
+    tests:[
+      {desc:`countChar("banana", "a") returns 3`, fn:code=>{try{return getExerciseFn(code,'countChar')('banana','a')===3;}catch(e){return false;}}},
+      {desc:`countChar("Mississippi", "s") returns 4`, fn:code=>{try{return getExerciseFn(code,'countChar')('Mississippi','s')===4;}catch(e){return false;}}},
+      {desc:`countChar("hello", "z") returns 0`, fn:code=>{try{return getExerciseFn(code,'countChar')('hello','z')===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:26, cat:'Basics', title:'Clamp Number', diff:'easy',
+    desc:'Keep a number inside a minimum and maximum range.',
+    fullDesc:`Write a function called <code>clamp(num, min, max)</code> that returns <code>num</code> when it is inside the range, <code>min</code> when it is too small, and <code>max</code> when it is too large.`,
+    hint:'Use Math.max and Math.min, or a couple of comparisons.',
+    starter:`// Write a function called clamp(num, min, max)
+// Return num, min, or max depending on the range
+
+`,
+    tests:[
+      {desc:'clamp(5, 1, 10) returns 5', fn:code=>{try{return getExerciseFn(code,'clamp')(5,1,10)===5;}catch(e){return false;}}},
+      {desc:'clamp(-2, 0, 10) returns 0', fn:code=>{try{return getExerciseFn(code,'clamp')(-2,0,10)===0;}catch(e){return false;}}},
+      {desc:'clamp(25, 0, 20) returns 20', fn:code=>{try{return getExerciseFn(code,'clamp')(25,0,20)===20;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:27, cat:'Arrays', title:'Double All Numbers', diff:'medium',
+    desc:'Return a new array with every number doubled.',
+    fullDesc:`Write a function called <code>doubleAll(arr)</code> that returns a new array where every number is multiplied by 2. Do not mutate the original array.`,
+    hint:'Use arr.map(n => n * 2).',
+    starter:`// Write a function called doubleAll(arr)
+// Return a new array with every number doubled
+
+`,
+    tests:[
+      {desc:'Doubles each number', fn:code=>{try{const original=[1,2,3];const result=getExerciseFn(code,'doubleAll')(original);return JSON.stringify(result)==='[2,4,6]'&&JSON.stringify(original)==='[1,2,3]';}catch(e){return false;}}},
+      {desc:'Handles an empty array', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'doubleAll')([]))==='[]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:28, cat:'Arrays', title:'Sum Positive Numbers', diff:'medium',
+    desc:'Add up only the positive numbers in an array.',
+    fullDesc:`Write a function called <code>sumPositive(arr)</code> that returns the sum of only the positive numbers in the array. Treat zero as not positive.`,
+    hint:'Filter values greater than 0, then reduce them.',
+    starter:`// Write a function called sumPositive(arr)
+// Return the sum of only the positive numbers
+
+`,
+    tests:[
+      {desc:'[1, -2, 3, 4] returns 8', fn:code=>{try{return getExerciseFn(code,'sumPositive')([1,-2,3,4])===8;}catch(e){return false;}}},
+      {desc:'[-1, -2] returns 0', fn:code=>{try{return getExerciseFn(code,'sumPositive')([-1,-2])===0;}catch(e){return false;}}},
+      {desc:'[0, 5, 10] returns 15', fn:code=>{try{return getExerciseFn(code,'sumPositive')([0,5,10])===15;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:29, cat:'Objects', title:'Pick Keys', diff:'medium',
+    desc:'Create a new object containing only selected properties.',
+    fullDesc:`Write a function called <code>pick(obj, keys)</code> that returns a new object containing only the properties listed in <code>keys</code>. Ignore keys that do not exist.`,
+    hint:'Loop through the keys array and copy the ones that exist.',
+    starter:`// Write a function called pick(obj, keys)
+// Return a new object with only the selected keys
+
+`,
+    tests:[
+      {desc:'Picks the requested keys', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'pick')({a:1,b:2,c:3},['a','c']))==='{"a":1,"c":3}';}catch(e){return false;}}},
+      {desc:'Ignores missing keys', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'pick')({name:'Ada',age:36},['name','missing']))==='{"name":"Ada"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:30, cat:'Functions', title:'Create a Counter', diff:'medium',
+    desc:'Return a function that remembers and increments state.',
+    fullDesc:`Write a function called <code>createCounter(start = 0)</code> that returns another function. Each time the returned function is called, it should return the current count and then increment it.`,
+    hint:'Use a closure with let current = start.',
+    starter:`// Write a function called createCounter(start = 0)
+// It should return a function that counts upward
+
+`,
+    tests:[
+      {desc:'Starts from the provided value', fn:code=>{try{const counter=getExerciseFn(code,'createCounter')(3);return counter()===3&&counter()===4&&counter()===5;}catch(e){return false;}}},
+      {desc:'Defaults to zero', fn:code=>{try{const counter=getExerciseFn(code,'createCounter')();return counter()===0&&counter()===1;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:31, cat:'Loops', title:'Is Prime', diff:'medium',
+    desc:'Check whether a number is prime.',
+    fullDesc:`Write a function called <code>isPrime(n)</code> that returns <code>true</code> when <code>n</code> is a prime number and <code>false</code> otherwise. Treat numbers less than 2 as not prime.`,
+    hint:'Check divisibility from 2 up to the square root of n.',
+    starter:`// Write a function called isPrime(n)
+// Return true if n is prime, false otherwise
+
+`,
+    tests:[
+      {desc:'2 is prime', fn:code=>{try{return getExerciseFn(code,'isPrime')(2)===true;}catch(e){return false;}}},
+      {desc:'15 is not prime', fn:code=>{try{return getExerciseFn(code,'isPrime')(15)===false;}catch(e){return false;}}},
+      {desc:'17 is prime', fn:code=>{try{return getExerciseFn(code,'isPrime')(17)===true;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:32, cat:'Challenges', title:'Safe Parse JSON', diff:'medium',
+    desc:'Parse JSON and fall back to null when it fails.',
+    fullDesc:`Write a function called <code>safeParseJSON(text)</code> that returns the parsed value if <code>text</code> is valid JSON. If parsing throws an error, return <code>null</code> instead.`,
+    hint:'Wrap JSON.parse in try / catch.',
+    starter:`// Write a function called safeParseJSON(text)
+// Return parsed JSON, or null if parsing fails
+
+`,
+    tests:[
+      {desc:'Parses an object string', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'safeParseJSON')('{"a":1}'))==='{"a":1}';}catch(e){return false;}}},
+      {desc:'Parses an array string', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'safeParseJSON')('[1,2,3]'))==='[1,2,3]';}catch(e){return false;}}},
+      {desc:'Returns null for invalid JSON', fn:code=>{try{return getExerciseFn(code,'safeParseJSON')('not json')===null;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:33, cat:'Strings', title:'Validate Email', diff:'medium',
+    desc:'Check whether a string looks like an email address.',
+    fullDesc:`Write a function called <code>isValidEmail(str)</code> that returns <code>true</code> when <code>str</code> looks like a valid email address and <code>false</code> otherwise. Use a regular expression.`,
+    hint:'A simple regex like /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/ is enough for this exercise.',
+    starter:`// Write a function called isValidEmail(str)
+// Return true if the string looks like an email address
+
+`,
+    tests:[
+      {desc:'Valid email passes', fn:code=>{try{return getExerciseFn(code,'isValidEmail')('alice@example.com')===true;}catch(e){return false;}}},
+      {desc:'Invalid email fails', fn:code=>{try{return getExerciseFn(code,'isValidEmail')('bad@')===false;}catch(e){return false;}}},
+      {desc:'Subdomains still pass', fn:code=>{try{return getExerciseFn(code,'isValidEmail')('name.surname@domain.co')===true;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:39, cat:'Challenges', title:'Format Date', diff:'medium',
+    desc:'Format a Date object as YYYY-MM-DD.',
+    fullDesc:`Write a function called <code>formatDate(date)</code> that returns a string in <code>YYYY-MM-DD</code> format using the UTC year, month, and day from the Date object.`,
+    hint:'Use getUTCFullYear, getUTCMonth, and getUTCDate.',
+    starter:`// Write a function called formatDate(date)
+// Return a string like "2026-04-23"
+
+`,
+    tests:[
+      {desc:'Formats a UTC date', fn:code=>{try{return getExerciseFn(code,'formatDate')(new Date(Date.UTC(2026,3,23)))==='2026-04-23';}catch(e){return false;}}},
+      {desc:'Pads month and day with zeros', fn:code=>{try{return getExerciseFn(code,'formatDate')(new Date(Date.UTC(1999,11,5)))==='1999-12-05';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:34, cat:'Challenges', title:'Deep Clone', diff:'hard',
+    desc:'Clone nested arrays and objects without shared references.',
+    fullDesc:`Write a function called <code>deepClone(value)</code> that returns a deep copy of arrays and plain objects. Nested objects and arrays should be cloned recursively.`,
+    hint:'Handle arrays separately, then recurse into plain objects.',
+    starter:`// Write a function called deepClone(value)
+// Return a deep copy of arrays and plain objects
+
+`,
+    tests:[
+      {desc:'Clones nested objects', fn:code=>{try{const fn=getExerciseFn(code,'deepClone');const original={name:'Ada',skills:['js',{level:3}]};const copy=fn(original);copy.skills[1].level=4;return original.skills[1].level===3&&copy.skills[1].level===4&&copy!==original;}catch(e){return false;}}},
+      {desc:'Clones nested arrays', fn:code=>{try{const fn=getExerciseFn(code,'deepClone');const original=[1,[2,3],{x:4}];const copy=fn(original);copy[1][0]=99;copy[2].x=7;return original[1][0]===2&&original[2].x===4;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:35, cat:'Functions', title:'Memoize', diff:'hard',
+    desc:'Cache repeated calls to a function.',
+    fullDesc:`Write a function called <code>memoize(fn)</code> that returns a cached version of <code>fn</code>. If the returned function is called again with the same arguments, it should reuse the previous result instead of calling <code>fn</code> again.`,
+    hint:'Use a Map keyed by JSON.stringify(args).',
+    starter:`// Write a function called memoize(fn)
+// Cache results based on the arguments passed in
+
+`,
+    tests:[
+      {desc:'Caches repeated calls', fn:code=>{try{let calls=0;const memoized=getExerciseFn(code,'memoize')((a,b)=>{calls+=1;return a+b;});const first=memoized(2,3);const second=memoized(2,3);const third=memoized(4,1);return first===5&&second===5&&third===5&&calls===2;}catch(e){return false;}}},
+      {desc:'Treats different arguments separately', fn:code=>{try{let calls=0;const memoized=getExerciseFn(code,'memoize')((value)=>{calls+=1;return value*2;});memoized(2);memoized(3);memoized(2);return calls===2;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:36, cat:'Functions', title:'Curry a Function', diff:'hard',
+    desc:'Turn a multi-argument function into chained calls.',
+    fullDesc:`Write a function called <code>curry(fn)</code> that returns a curried version of <code>fn</code>. Once enough arguments have been collected, call the original function.`,
+    hint:'Check fn.length and keep collecting arguments until you have enough.',
+    starter:`// Write a function called curry(fn)
+// Return a curried version of fn
+
+`,
+    tests:[
+      {desc:'Supports chained single arguments', fn:code=>{try{const curried=getExerciseFn(code,'curry')((a,b,c)=>a+b+c);return curried(1)(2)(3)===6;}catch(e){return false;}}},
+      {desc:'Supports grouped arguments', fn:code=>{try{const curried=getExerciseFn(code,'curry')((a,b,c)=>a+b+c);return curried(1,2)(3)===6&&curried(1)(2,3)===6;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:37, cat:'Challenges', title:'Binary Search', diff:'hard',
+    desc:'Find an item in a sorted array using binary search.',
+    fullDesc:`Write a function called <code>binarySearch(arr, target)</code> that returns the index of <code>target</code> in a sorted array. If the value is not found, return <code>-1</code>.`,
+    hint:'Keep left and right pointers, then check the middle element each time.',
+    starter:`// Write a function called binarySearch(arr, target)
+// Return the index of target in a sorted array, or -1 if not found
+
+`,
+    tests:[
+      {desc:'Finds an item in the middle', fn:code=>{try{return getExerciseFn(code,'binarySearch')([1,3,5,7,9],7)===3;}catch(e){return false;}}},
+      {desc:'Returns -1 when missing', fn:code=>{try{return getExerciseFn(code,'binarySearch')([1,3,5,7,9],2)===-1;}catch(e){return false;}}},
+      {desc:'Finds the first item', fn:code=>{try{return getExerciseFn(code,'binarySearch')([1,3,5,7,9],1)===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:38, cat:'Challenges', title:'Create an Event Emitter', diff:'hard',
+    desc:'Build a tiny publish/subscribe system.',
+    fullDesc:`Write a function called <code>createEmitter()</code> that returns an object with <code>on(event, handler)</code>, <code>off(event, handler)</code>, and <code>emit(event, payload)</code>. Handlers should be called in the order they were added.`,
+    hint:'Store listeners per event in arrays, then add, remove, and loop over them.',
+    starter:`// Write a function called createEmitter()
+// Return an object with on, off, and emit methods
+
+`,
+    tests:[
+      {desc:'Emits events to listeners', fn:code=>{try{const emitter=getExerciseFn(code,'createEmitter')();let total=0;const add=value=>{total+=value;};emitter.on('add',add);emitter.emit('add',2);emitter.emit('add',3);return total===5;}catch(e){return false;}}},
+      {desc:'Can remove listeners', fn:code=>{try{const emitter=getExerciseFn(code,'createEmitter')();let count=0;const inc=()=>{count+=1;};emitter.on('tick',inc);emitter.off('tick',inc);emitter.emit('tick');return count===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:40, cat:'Arrays', title:'Chunk Array', diff:'easy',
+    desc:'Split an array into smaller chunks of a given size.',
+    fullDesc:`Write a function called <code>chunkArray(arr, size)</code> that returns a new array containing chunks of <code>size</code> elements. The last chunk can be shorter if needed.`,
+    hint:'Walk the array in steps of size and use slice to build each chunk.',
+    starter:`// Write a function called chunkArray(arr, size)
+// Return a new array of smaller arrays
+
+`,
+    tests:[
+      {desc:'Chunks [1,2,3,4,5] into pairs', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'chunkArray')([1,2,3,4,5],2))==='[[1,2],[3,4],[5]]';}catch(e){return false;}}},
+      {desc:'Handles a chunk size larger than the array', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'chunkArray')([1,2,3],10))==='[[1,2,3]]';}catch(e){return false;}}},
+      {desc:'Does not mutate the original array', fn:code=>{try{const original=[1,2,3,4];getExerciseFn(code,'chunkArray')(original,2);return JSON.stringify(original)==='[1,2,3,4]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:41, cat:'Objects', title:'Map Object Values', diff:'easy',
+    desc:'Transform every value in an object and keep the same keys.',
+    fullDesc:`Write a function called <code>mapValues(obj, fn)</code> that returns a new object with the same keys as <code>obj</code> but with each value transformed by <code>fn</code>.`,
+    hint:'Use Object.entries to rebuild a fresh object.',
+    starter:`// Write a function called mapValues(obj, fn)
+// Return a new object with transformed values
+
+`,
+    tests:[
+      {desc:'Maps numbers to doubles', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'mapValues')({a:1,b:2},v=>v*2))==='{"a":2,"b":4}';}catch(e){return false;}}},
+      {desc:'Can map strings to lengths', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'mapValues')({a:'hi',b:'world'},v=>v.length))==='{"a":2,"b":5}';}catch(e){return false;}}},
+      {desc:'Does not mutate the original object', fn:code=>{try{const original={a:1};getExerciseFn(code,'mapValues')(original,v=>v+1);return JSON.stringify(original)==='{"a":1}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:42, cat:'Async', title:'Delay', diff:'easy',
+    desc:'Return a promise that resolves after a short wait.',
+    fullDesc:`Write an async function called <code>delay(ms)</code> that returns a promise which resolves with <code>ms</code> after <code>ms</code> milliseconds.`,
+    hint:'Return new Promise(resolve => setTimeout(() => resolve(ms), ms)).',
+    starter:`// Write an async function called delay(ms)
+// Resolve with ms after waiting
+
+`,
+    tests:[
+      {desc:'Resolves to the input value', fn:async code=>{try{return await getExerciseFn(code,'delay')(5)===5;}catch(e){return false;}}},
+      {desc:'Returns a promise', fn:code=>{try{return typeof getExerciseFn(code,'delay')(1)?.then==='function';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:43, cat:'Async', title:'Fetch JSON', diff:'medium',
+    desc:'Fetch a URL and return the parsed JSON response.',
+    fullDesc:`Write an async function called <code>fetchJSON(url, fetchImpl = fetch)</code> that calls <code>fetchImpl(url)</code> and returns the parsed JSON from the response.`,
+    hint:'Await the response and then await response.json().',
+    starter:`// Write an async function called fetchJSON(url, fetchImpl = fetch)
+// Return the parsed JSON payload
+
+`,
+    tests:[
+      {desc:'Uses the provided fetch function', fn:async code=>{try{const fn=getExerciseFn(code,'fetchJSON');const calls=[];const fakeFetch=async url=>{calls.push(url);return {json:async()=>({ok:true,url})};};const result=await fn('/users/1',fakeFetch);return result.ok===true&&calls[0]==='/users/1';}catch(e){return false;}}},
+      {desc:'Returns parsed JSON data', fn:async code=>{try{const fn=getExerciseFn(code,'fetchJSON');const fakeFetch=async()=>({json:async()=>({name:'Ada'})});const result=await fn('/user',fakeFetch);return result.name==='Ada';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:44, cat:'Promises', title:'Promise All', diff:'medium',
+    desc:'Resolve many promises and values together.',
+    fullDesc:`Write a function called <code>allValues(promises)</code> that returns a promise resolving to an array of values in the same order as the input.`,
+    hint:'Promise.all already does the heavy lifting.',
+    starter:`// Write a function called allValues(promises)
+// Resolve an array of promises and values
+
+`,
+    tests:[
+      {desc:'Resolves values in order', fn:async code=>{try{const result=await getExerciseFn(code,'allValues')([Promise.resolve(1),2,Promise.resolve(3)]);return JSON.stringify(result)==='[1,2,3]';}catch(e){return false;}}},
+      {desc:'Works with plain values and promises', fn:async code=>{try{const result=await getExerciseFn(code,'allValues')(['a',Promise.resolve('b')]);return JSON.stringify(result)==='["a","b"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:45, cat:'DOM', title:'Create Todo Item', diff:'easy',
+    desc:'Build a list item element for a todo.',
+    fullDesc:`Write a function called <code>createTodoItem(text, completed = false)</code> that creates and returns a <code>li</code> element. It should set the text content and add the <code>done</code> class when <code>completed</code> is true.`,
+    hint:'Use document.createElement("li") and classList.add().',
+    starter:`// Write a function called createTodoItem(text, completed = false)
+// Return an li element
+
+`,
+    tests:[
+      {desc:'Creates an li element with text', fn:code=>{try{const el=getExerciseFn(code,'createTodoItem')('Learn JS');return el.tagName==='LI'&&el.textContent==='Learn JS';}catch(e){return false;}}},
+      {desc:'Adds the done class when completed', fn:code=>{try{const el=getExerciseFn(code,'createTodoItem')('Ship it',true);return el.classList.contains('done');}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:46, cat:'DOM', title:'Render List', diff:'medium',
+    desc:'Render an array of values into a container.',
+    fullDesc:`Write a function called <code>renderList(items, container)</code> that clears <code>container</code> and appends an <code>li</code> for each item in <code>items</code>.`,
+    hint:'Clear the container first, then append a fresh element for each item.',
+    starter:`// Write a function called renderList(items, container)
+// Render a list of items into the container
+
+`,
+    tests:[
+      {desc:'Renders one element per item', fn:code=>{try{const fn=getExerciseFn(code,'renderList');const container=document.createElement('ul');fn(['a','b','c'],container);return container.children.length===3&&container.children[0].textContent==='a';}catch(e){return false;}}},
+      {desc:'Clears existing content first', fn:code=>{try{const fn=getExerciseFn(code,'renderList');const container=document.createElement('ul');container.innerHTML='<li>old</li>';fn(['new'],container);return container.children.length===1&&container.textContent==='new';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:47, cat:'Objects', title:'Deep Merge Objects', diff:'hard',
+    desc:'Merge nested objects without losing existing data.',
+    fullDesc:`Write a function called <code>deepMerge(target, source)</code> that returns a new object combining both inputs. When both sides contain a plain object at the same key, merge them recursively.`,
+    hint:'Clone the target first, then recurse only into plain objects.',
+    starter:`// Write a function called deepMerge(target, source)
+// Return a new object with recursively merged plain objects
+
+`,
+    tests:[
+      {desc:'Merges nested objects recursively', fn:code=>{try{const fn=getExerciseFn(code,'deepMerge');const left={user:{name:'Ada',prefs:{theme:'dark'}},count:1};const right={user:{prefs:{fontSize:14}},count:2};const result=fn(left,right);return result.user.name==='Ada'&&result.user.prefs.theme==='dark'&&result.user.prefs.fontSize===14&&result.count===2;}catch(e){return false;}}},
+      {desc:'Does not mutate the original objects', fn:code=>{try{const fn=getExerciseFn(code,'deepMerge');const left={a:{x:1}};const right={a:{y:2}};const result=fn(left,right);result.a.x=99;return left.a.x===1&&right.a.y===2;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:48, cat:'Async', title:'Retry Async', diff:'hard',
+    desc:'Retry a failing async operation until it succeeds.',
+    fullDesc:`Write an async function called <code>retry(fn, attempts = 3)</code> that calls an async function repeatedly until it resolves. If all attempts fail, rethrow the last error.`,
+    hint:'Use a loop and await fn() inside try / catch.',
+    starter:`// Write an async function called retry(fn, attempts = 3)
+// Retry an async function until it succeeds
+
+`,
+    tests:[
+      {desc:'Retries until the function succeeds', fn:async code=>{try{const fn=getExerciseFn(code,'retry');let calls=0;const unstable=async()=>{calls+=1;if(calls<3)throw new Error('nope');return 'ok';};const result=await fn(unstable,5);return result==='ok'&&calls===3;}catch(e){return false;}}},
+      {desc:'Throws after exhausting attempts', fn:async code=>{try{const fn=getExerciseFn(code,'retry');let calls=0;const failing=async()=>{calls+=1;throw new Error('fail');};await fn(failing,2);return false;}catch(e){return true;}}}
+    ]
+  },
+  {
+    id:49, cat:'Arrays', title:'Chunk Array', diff:'easy',
+    desc:'Split an array into smaller chunks of a given size.',
+    fullDesc:`Write a function called <code>chunkArray(arr, size)</code> that returns a new array containing chunks of <code>size</code> elements. The last chunk can be shorter if needed.`,
+    hint:'Walk the array in steps of size and use slice to build each chunk.',
+    starter:`// Write a function called chunkArray(arr, size)
+// Return a new array of smaller arrays
+
+`,
+    tests:[
+      {desc:'Chunks [1,2,3,4,5] into pairs', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'chunkArray')([1,2,3,4,5],2))==='[[1,2],[3,4],[5]]';}catch(e){return false;}}},
+      {desc:'Handles a chunk size larger than the array', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'chunkArray')([1,2,3],10))==='[[1,2,3]]';}catch(e){return false;}}},
+      {desc:'Does not mutate the original array', fn:code=>{try{const original=[1,2,3,4];getExerciseFn(code,'chunkArray')(original,2);return JSON.stringify(original)==='[1,2,3,4]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:50, cat:'Objects', title:'Map Object Values', diff:'easy',
+    desc:'Transform every value in an object and keep the same keys.',
+    fullDesc:`Write a function called <code>mapValues(obj, fn)</code> that returns a new object with the same keys as <code>obj</code> but with each value transformed by <code>fn</code>.`,
+    hint:'Use Object.entries to rebuild a fresh object.',
+    starter:`// Write a function called mapValues(obj, fn)
+// Return a new object with transformed values
+
+`,
+    tests:[
+      {desc:'Maps numbers to doubles', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'mapValues')({a:1,b:2},v=>v*2))==='{"a":2,"b":4}';}catch(e){return false;}}},
+      {desc:'Can map strings to lengths', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'mapValues')({a:'hi',b:'world'},v=>v.length))==='{"a":2,"b":5}';}catch(e){return false;}}},
+      {desc:'Does not mutate the original object', fn:code=>{try{const original={a:1};getExerciseFn(code,'mapValues')(original,v=>v+1);return JSON.stringify(original)==='{"a":1}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:51, cat:'Objects', title:'Invert Object', diff:'easy',
+    desc:'Swap object keys and values.',
+    fullDesc:`Write a function called <code>invertObject(obj)</code> that returns a new object where each value becomes a key and each key becomes the value. If values repeat, the later key can overwrite the earlier one.`,
+    hint:'Loop through Object.entries and assign the value as the key.',
+    starter:`// Write a function called invertObject(obj)
+// Swap keys and values in a new object
+
+`,
+    tests:[
+      {desc:'Inverts simple key/value pairs', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'invertObject')({a:'x',b:'y'}))==='{"x":"a","y":"b"}';}catch(e){return false;}}},
+      {desc:'Works with numbers as values', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'invertObject')({one:1,two:2}))==='{"1":"one","2":"two"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:52, cat:'Browser APIs', title:'Get Query Param', diff:'easy',
+    desc:'Read a query string parameter from a URL.',
+    fullDesc:`Write a function called <code>getQueryParam(name, url)</code> that returns the value of the matching query parameter from <code>url</code>, or <code>null</code> if it is missing.`,
+    hint:'Use URL or URLSearchParams to read the query string.',
+    starter:`// Write a function called getQueryParam(name, url)
+// Return the matching query parameter value or null
+
+`,
+    tests:[
+      {desc:'Reads a present query parameter', fn:code=>{try{return getExerciseFn(code,'getQueryParam')('page','https://example.com/products?page=2&sort=asc')==='2';}catch(e){return false;}}},
+      {desc:'Returns null for missing values', fn:code=>{try{return getExerciseFn(code,'getQueryParam')('missing','https://example.com/products?page=2')===null;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:53, cat:'DOM', title:'Serialize Form', diff:'medium',
+    desc:'Turn form inputs into a plain object.',
+    fullDesc:`Write a function called <code>serializeForm(form)</code> that returns an object built from the named fields inside <code>form</code>.`,
+    hint:'FormData and Object.fromEntries make this compact.',
+    starter:`// Write a function called serializeForm(form)
+// Return an object of field names and values
+
+`,
+    tests:[
+      {desc:'Collects named input values', fn:code=>{try{const fn=getExerciseFn(code,'serializeForm');const form=document.createElement('form');const name=document.createElement('input');name.name='name';name.value='Ada';const email=document.createElement('input');email.name='email';email.value='ada@example.com';form.append(name,email);const result=fn(form);return result.name==='Ada'&&result.email==='ada@example.com';}catch(e){return false;}}},
+      {desc:'Ignores unnamed fields', fn:code=>{try{const fn=getExerciseFn(code,'serializeForm');const form=document.createElement('form');const input=document.createElement('input');input.value='x';form.append(input);const result=fn(form);return Object.keys(result).length===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:54, cat:'DOM', title:'Enable Todo Toggle', diff:'medium',
+    desc:'Use event delegation to toggle list items.',
+    fullDesc:`Write a function called <code>enableTodoToggle(list)</code> that attaches one click listener to <code>list</code> and toggles the <code>done</code> class on clicked <code>li</code> items.`,
+    hint:'Use closest("li") on the event target and classList.toggle.',
+    starter:`// Write a function called enableTodoToggle(list)
+// Toggle the done class on clicked list items
+
+`,
+    tests:[
+      {desc:'Toggles a clicked list item', fn:code=>{try{const fn=getExerciseFn(code,'enableTodoToggle');const list=document.createElement('ul');const item=document.createElement('li');const span=document.createElement('span');span.textContent='Item';item.appendChild(span);list.appendChild(item);fn(list);span.dispatchEvent(new MouseEvent('click',{bubbles:true}));return item.classList.contains('done');}catch(e){return false;}}},
+      {desc:'Can toggle an item back off', fn:code=>{try{const fn=getExerciseFn(code,'enableTodoToggle');const list=document.createElement('ul');const item=document.createElement('li');list.appendChild(item);fn(list);item.dispatchEvent(new MouseEvent('click',{bubbles:true}));item.dispatchEvent(new MouseEvent('click',{bubbles:true}));return !item.classList.contains('done');}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:55, cat:'Promises', title:'Promise All Settled', diff:'medium',
+    desc:'Wait for every promise and keep both successes and failures.',
+    fullDesc:`Write a function called <code>settleAll(promises)</code> that returns a promise resolving to an array of settled results, each with <code>status</code> and either <code>value</code> or <code>reason</code>.`,
+    hint:'Promise.all with mapped handlers is enough.',
+    starter:`// Write a function called settleAll(promises)
+// Return settled results for every promise
+
+`,
+    tests:[
+      {desc:'Captures fulfilled and rejected outcomes', fn:async code=>{try{const result=await getExerciseFn(code,'settleAll')([Promise.resolve(1),Promise.reject('no')]);return result[0].status==='fulfilled'&&result[0].value===1&&result[1].status==='rejected'&&result[1].reason==='no';}catch(e){return false;}}},
+      {desc:'Preserves input order', fn:async code=>{try{const result=await getExerciseFn(code,'settleAll')([Promise.reject('x'),Promise.resolve('y')]);return result[0].status==='rejected'&&result[1].status==='fulfilled';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:56, cat:'Functions', title:'Debounce', diff:'hard',
+    desc:'Delay a function until calls stop happening.',
+    fullDesc:`Write a function called <code>debounce(fn, wait)</code> that returns a debounced version of <code>fn</code>. The wrapped function should only run after calls stop for <code>wait</code> milliseconds.`,
+    hint:'Clear and reset a timeout on every call.',
+    starter:`// Write a function called debounce(fn, wait)
+// Return a debounced version of fn
+
+`,
+    tests:[
+      {desc:'Only runs once after rapid calls', fn:async code=>{try{const fn=getExerciseFn(code,'debounce');const calls=[];const debounced=fn(v=>calls.push(v),20);debounced(1);debounced(2);debounced(3);await new Promise(resolve=>setTimeout(resolve,35));return calls.length===1&&calls[0]===3;}catch(e){return false;}}},
+      {desc:'Can run again after the wait', fn:async code=>{try{const fn=getExerciseFn(code,'debounce');const calls=[];const debounced=fn(v=>calls.push(v),15);debounced('a');await new Promise(resolve=>setTimeout(resolve,25));debounced('b');await new Promise(resolve=>setTimeout(resolve,25));return calls.length===2&&calls[0]==='a'&&calls[1]==='b';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:57, cat:'Classes', title:'Counter Class', diff:'easy',
+    desc:'Build a class that keeps track of a numeric value.',
+    fullDesc:`Write a class called <code>Counter</code> with a constructor that accepts a starting value. Add <code>increment()</code>, <code>decrement()</code>, and <code>reset()</code> methods.`,
+    hint:'Store the current value on the instance and update it inside methods.',
+    starter:`// Write a class called Counter
+// It should support increment, decrement, and reset
+
+`,
+    tests:[
+      {desc:'Starts from the provided value', fn:code=>{try{const Counter=getExerciseFn(code,'Counter');const counter=new Counter(2);return counter.increment()===3&&counter.decrement()===2&&counter.reset()===0;}catch(e){return false;}}},
+      {desc:'Can default to zero', fn:code=>{try{const Counter=getExerciseFn(code,'Counter');const counter=new Counter();return counter.increment()===1;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:58, cat:'Classes', title:'Rectangle Class', diff:'medium',
+    desc:'Use getters to expose derived values from a class.',
+    fullDesc:`Write a class called <code>Rectangle</code> that stores a width and height. Add getter properties for <code>area</code> and <code>perimeter</code>.`,
+    hint:'Use getter syntax so area and perimeter are computed on demand.',
+    starter:`// Write a class called Rectangle
+// Add area and perimeter getters
+
+`,
+    tests:[
+      {desc:'Calculates area and perimeter', fn:code=>{try{const Rectangle=getExerciseFn(code,'Rectangle');const rect=new Rectangle(4,5);return rect.area===20&&rect.perimeter===18;}catch(e){return false;}}},
+      {desc:'Updates when dimensions change', fn:code=>{try{const Rectangle=getExerciseFn(code,'Rectangle');const rect=new Rectangle(2,3);rect.width=6;return rect.area===18;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:59, cat:'Classes', title:'Bank Account', diff:'hard',
+    desc:'Encapsulate a private balance with deposit and withdraw methods.',
+    fullDesc:`Write a class called <code>BankAccount</code> that keeps the balance private, accepts an owner and optional starting balance, and exposes a read-only <code>balance</code> getter. Add <code>deposit(amount)</code> and <code>withdraw(amount)</code> methods.`,
+    hint:'Use a private field for the balance and return false when a withdrawal would overdraft.',
+    starter:`// Write a class called BankAccount
+// Keep balance private and expose deposit/withdraw methods
+
+`,
+    tests:[
+      {desc:'Deposits and withdraws correctly', fn:code=>{try{const BankAccount=getExerciseFn(code,'BankAccount');const account=new BankAccount('Ada',100);const deposit=account.deposit(25);const withdraw=account.withdraw(40);return deposit===125&&withdraw===true&&account.balance===85;}catch(e){return false;}}},
+      {desc:'Prevents overdrafts', fn:code=>{try{const BankAccount=getExerciseFn(code,'BankAccount');const account=new BankAccount('Ada',50);return account.withdraw(100)===false&&account.balance===50;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:60, cat:'Classes', title:'Prototype Greeter', diff:'medium',
+    desc:'Attach behavior to a constructor function prototype.',
+    fullDesc:`Write a constructor function called <code>Person(name)</code> and add a <code>sayHi()</code> method on <code>Person.prototype</code>. The method should return <code>"Hi, [name]!"</code>.`,
+    hint:'The method should live on the prototype, not inside the constructor.',
+    starter:`// Write a constructor function called Person(name)
+// Add sayHi() on Person.prototype
+
+`,
+    tests:[
+      {desc:'sayHi returns a greeting', fn:code=>{try{const Person=getExerciseFn(code,'Person');const person=new Person('Ada');return person.sayHi()==='Hi, Ada!';}catch(e){return false;}}},
+      {desc:'Method lives on the prototype', fn:code=>{try{const Person=getExerciseFn(code,'Person');const person=new Person('Ada');return typeof Person.prototype.sayHi==='function'&&Object.prototype.hasOwnProperty.call(Person.prototype,'sayHi')&&!Object.prototype.hasOwnProperty.call(person,'sayHi');}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:61, cat:'Modules', title:'Named Exports', diff:'easy',
+    desc:'Export utility functions from an ES module.',
+    fullDesc:`Write an ES module that exports named functions <code>add(a, b)</code> and <code>multiply(a, b)</code>.`,
+    hint:'Use export function ... for both utilities.',
+    starter:`// Export add and multiply as named exports
+
+`,
+    tests:[
+      {desc:'Exports add and multiply', fn:async code=>{try{const mod=await getModuleExports(code);return mod.add(2,3)===5&&mod.multiply(4,5)===20;}catch(e){return false;}}},
+      {desc:'Both exports are functions', fn:async code=>{try{const mod=await getModuleExports(code);return typeof mod.add==='function'&&typeof mod.multiply==='function';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:62, cat:'Modules', title:'Default Export', diff:'medium',
+    desc:'Export a default formatter function.',
+    fullDesc:`Write an ES module that default-exports a function called <code>formatName(first, last)</code>. It should return the name in <code>Last, First</code> format.`,
+    hint:'Use export default function formatName(...) { ... }.',
+    starter:`// Default-export a function called formatName(first, last)
+
+`,
+    tests:[
+      {desc:'Default export formats the name', fn:async code=>{try{const mod=await getModuleExports(code);return mod.default('Ada','Lovelace')==='Lovelace, Ada';}catch(e){return false;}}},
+      {desc:'Module has a default export', fn:async code=>{try{const mod=await getModuleExports(code);return typeof mod.default==='function';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:63, cat:'Modules', title:'Mixed Exports', diff:'hard',
+    desc:'Export a constant, helper, and default function from one module.',
+    fullDesc:`Write an ES module that exports <code>VERSION</code>, a named function <code>repeat(text, count)</code>, and a default function <code>makeLabel(name)</code>. The default function should return a label that includes the name and version.`,
+    hint:'You can combine named exports and a default export in the same module.',
+    starter:`// Export VERSION, repeat, and a default makeLabel function
+
+`,
+    tests:[
+      {desc:'Exports the constant and helper', fn:async code=>{try{const mod=await getModuleExports(code);return mod.VERSION==='1.0.0'&&mod.repeat('ha',3)==='hahaha';}catch(e){return false;}}},
+      {desc:'Default export includes the version', fn:async code=>{try{const mod=await getModuleExports(code);return mod.default('App')==='App v1.0.0';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:64, cat:'Promises', title:'With Timeout', diff:'medium',
+    desc:'Reject a promise if it takes too long.',
+    fullDesc:`Write a function called <code>withTimeout(promise, ms)</code> that returns a promise. If <code>promise</code> settles before <code>ms</code>, forward its value or reason. Otherwise reject with an <code>Error</code> whose message includes <code>Timeout</code>.`,
+    hint:'Promise.race is the cleanest solution.',
+    starter:`// Write a function called withTimeout(promise, ms)
+// Reject if the promise takes too long
+
+`,
+    tests:[
+      {desc:'Resolves when the promise is fast enough', fn:async code=>{try{const fast=new Promise(resolve=>setTimeout(()=>resolve('ok'),10));return await getExerciseFn(code,'withTimeout')(fast,50)==='ok';}catch(e){return false;}}},
+      {desc:'Rejects when the promise is too slow', fn:async code=>{try{const slow=new Promise(resolve=>setTimeout(()=>resolve('ok'),50));await getExerciseFn(code,'withTimeout')(slow,10);return false;}catch(e){return /timeout/i.test(String(e?.message||e));}}}
+    ]
+  },
 ];
+
+function getExerciseFn(code, name){
+  return new Function(code + '\nreturn ' + name + ';')();
+}
+
+async function getModuleExports(code){
+  const blob=new Blob([code],{type:'text/javascript'});
+  const url=URL.createObjectURL(blob);
+  try{return await import(url);}finally{URL.revokeObjectURL(url);}
+}
+
+const LEVEL_BY_DIFF={easy:'Fundamentals',medium:'Intermediate',hard:'Advanced'};
+const LEVEL_ORDER=['Fundamentals','Intermediate','Advanced'];
+const LEVEL_META={
+  Fundamentals:{note:'Core syntax, values, and control flow'},
+  Intermediate:{note:'Reusable patterns and data shaping'},
+  Advanced:{note:'Recursion, caching, and stateful systems'}
+};
+
+function getLevel(diff){
+  return LEVEL_BY_DIFF[diff] || 'Intermediate';
+}
+
+const PROGRESS_KEY='js-playground.completed-exercises';
+function loadCompletedIds(){
+  try{
+    const raw=localStorage.getItem(PROGRESS_KEY);
+    if(!raw)return [];
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed)?parsed.filter(id=>Number.isInteger(id)&&EXERCISES.some(ex=>ex.id===id)):[];
+  }catch(e){return [];}
+}
+function saveCompletedIds(){
+  try{localStorage.setItem(PROGRESS_KEY,JSON.stringify([...done]));}catch(e){}
+}
+function updateProgressSummary(){
+  const el=document.getElementById('progress-summary');
+  if(el)el.textContent=`${done.size}/${EXERCISES.length} completed`;
+}
+function markCompleted(id){
+  if(!done.has(id)){
+    done.add(id);
+    saveCompletedIds();
+    updateProgressSummary();
+  }
+}
+function clearCompleted(){
+  done.clear();
+  saveCompletedIds();
+  updateProgressSummary();
+  renderExList();
+}
 
 /* ── Categories ── */
 const CATS=['All',...new Set(EXERCISES.map(e=>e.cat))];
-const done=new Set();
+const done=new Set(loadCompletedIds());
 let activeCat='All';
 let activeEx=null;
 
@@ -671,14 +1322,28 @@ function renderExList(){
   const list=document.getElementById('ex-list');
   list.innerHTML='';
   const filtered=activeCat==='All'?EXERCISES:EXERCISES.filter(e=>e.cat===activeCat);
+  const grouped=LEVEL_ORDER.map(level=>({level,items:[]}));
   filtered.forEach(ex=>{
-    const d=document.createElement('div');
-    d.className='ex-item'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'');
-    d.innerHTML=`<div class="ex-title"><span class="tick">✓</span>${ex.title}</div>
-      <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${ex.diff}</div>
-      <div class="ex-desc">${ex.desc}</div>`;
-    d.addEventListener('click',()=>loadExercise(ex));
-    list.appendChild(d);
+    const group=grouped.find(item=>item.level===getLevel(ex.diff));
+    if(group)group.items.push(ex);
+  });
+  grouped.filter(group=>group.items.length).forEach(group=>{
+    const wrap=document.createElement('div');
+    wrap.className='level-group';
+    const hdr=document.createElement('div');
+    hdr.className='level-header';
+    hdr.innerHTML=`<span class="level-name">${group.level}</span><span class="level-note">${group.items.length} exercise${group.items.length===1?'':'s'} · ${LEVEL_META[group.level].note}</span>`;
+    wrap.appendChild(hdr);
+    group.items.forEach(ex=>{
+      const d=document.createElement('div');
+      d.className='ex-item'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'');
+      d.innerHTML=`<div class="ex-title"><span class="tick">✓</span>${ex.title}</div>
+        <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${group.level}</div>
+        <div class="ex-desc">${ex.desc}</div>`;
+      d.addEventListener('click',()=>loadExercise(ex));
+      wrap.appendChild(d);
+    });
+    list.appendChild(wrap);
   });
 }
 
@@ -715,23 +1380,31 @@ function renderTests(results){
 }
 
 /* ── Run tests ── */
-document.getElementById('test-btn').addEventListener('click',()=>{
+document.getElementById('test-btn').addEventListener('click',async()=>{
   if(!activeEx)return;
+  const testBtn=document.getElementById('test-btn');
+  testBtn.disabled=true;
   const code=eds.js?eds.js.getValue():codes.js;
-  const results=activeEx.tests.map(t=>{
-    let passed=false;
-    try{passed=t.fn(code);}catch(e){passed=false;}
-    return{...t,state:passed?'pass':'fail'};
-  });
-  renderTests(results);
-  const allPass=results.every(r=>r.state==='pass');
-  if(allPass){
-    done.add(activeEx.id);
-    renderExList();
-    addLog('li',`✓ All tests passed for "${activeEx.title}"! 🎉`);
-  } else {
-    const n=results.filter(r=>r.state==='fail').length;
-    addLog('lw',`${n} test${n>1?'s':''} failing for "${activeEx.title}"`);
+  renderTests(activeEx.tests.map(t=>({...t,state:'pending'})));
+  const results=[];
+  try{
+    for(const t of activeEx.tests){
+      let passed=false;
+      try{passed=await Promise.resolve(t.fn(code));}catch(e){passed=false;}
+      results.push({...t,state:passed?'pass':'fail'});
+    }
+    renderTests(results);
+    const allPass=results.every(r=>r.state==='pass');
+    if(allPass){
+      markCompleted(activeEx.id);
+      renderExList();
+      addLog('li',`✓ All tests passed for "${activeEx.title}"! 🎉`);
+    } else {
+      const n=results.filter(r=>r.state==='fail').length;
+      addLog('lw',`${n} test${n>1?'s':''} failing for "${activeEx.title}"`);
+    }
+  } finally {
+    testBtn.disabled=false;
   }
 });
 
@@ -739,9 +1412,13 @@ document.getElementById('test-btn').addEventListener('click',()=>{
 document.getElementById('hint-toggle-btn').addEventListener('click',()=>{
   document.getElementById('hint-box').classList.toggle('show');
 });
+document.getElementById('reset-progress-btn').addEventListener('click',()=>{
+  if(confirm('Clear saved exercise progress?'))clearCompleted();
+});
 
 /* ── Init sidebar ── */
 renderExList();
+updateProgressSummary();
 
 /* ═══════════════════════════════════════════════
    DEFAULT CODE
@@ -757,10 +1434,10 @@ console.log('Welcome to the playground!');`,
 <head>
   <meta charset="UTF-8">
   <title>Preview</title>
-</head>
+<\/head>
 <body>
   <!-- HTML goes here -->
-</body>
+<\/body>
 </html>`,
   css:`body {
   font-family: system-ui, sans-serif;
@@ -771,7 +1448,7 @@ console.log('Welcome to the playground!');`,
 };
 
 /* ── Emmet ── */
-const EH={'!':'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>|</title>\n</head>\n<body>\n  \n</body>\n</html>','div':'<div>|</div>','span':'<span>|</span>','p':'<p>|</p>','a':'<a href="|"></a>','img':'<img src="|" alt="">','ul':'<ul>\n  <li>|</li>\n</ul>','ol':'<ol>\n  <li>|</li>\n</ol>','li':'<li>|</li>','h1':'<h1>|</h1>','h2':'<h2>|</h2>','h3':'<h3>|</h3>','h4':'<h4>|</h4>','h5':'<h5>|</h5>','h6':'<h6>|</h6>','section':'<section>|</section>','article':'<article>|</article>','header':'<header>|</header>','footer':'<footer>|</footer>','nav':'<nav>|</nav>','main':'<main>|</main>','form':'<form action="|" method="post"></form>','input':'<input type="text" name="|" placeholder="">','button':'<button type="button">|</button>','canvas':'<canvas id="|" width="400" height="300"></canvas>','select':'<select name="|"><option value=""></option></select>','textarea':'<textarea name="|" rows="4"></textarea>','table':'<table>\n  <tr>\n    <td>|</td>\n  </tr>\n</table>','link':'<link rel="stylesheet" href="|">','script':'<script src="|"><\/script>','meta':'<meta name="|" content="">',};
+const EH={'!':'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>|</title>\n<\/head>\n<body>\n  \n<\/body>\n</html>','div':'<div>|</div>','span':'<span>|</span>','p':'<p>|</p>','a':'<a href="|"></a>','img':'<img src="|" alt="">','ul':'<ul>\n  <li>|</li>\n</ul>','ol':'<ol>\n  <li>|</li>\n</ol>','li':'<li>|</li>','h1':'<h1>|</h1>','h2':'<h2>|</h2>','h3':'<h3>|</h3>','h4':'<h4>|</h4>','h5':'<h5>|</h5>','h6':'<h6>|</h6>','section':'<section>|</section>','article':'<article>|</article>','header':'<header>|</header>','footer':'<footer>|</footer>','nav':'<nav>|</nav>','main':'<main>|</main>','form':'<form action="|" method="post"></form>','input':'<input type="text" name="|" placeholder="">','button':'<button type="button">|</button>','canvas':'<canvas id="|" width="400" height="300"></canvas>','select':'<select name="|"><option value=""></option></select>','textarea':'<textarea name="|" rows="4"></textarea>','table':'<table>\n  <tr>\n    <td>|</td>\n  </tr>\n</table>','link':'<link rel="stylesheet" href="|">','script':'<script src="|"><\/script>','meta':'<meta name="|" content="">',};
 const EC={'m':'margin: |;','mt':'margin-top: |;','mr':'margin-right: |;','mb':'margin-bottom: |;','ml':'margin-left: |;','p':'padding: |;','pt':'padding-top: |;','pr':'padding-right: |;','pb':'padding-bottom: |;','pl':'padding-left: |;','w':'width: |;','h':'height: |;','mw':'max-width: |;','wf':'width: 100%;','hf':'height: 100%;','bg':'background: |;','bgc':'background-color: |;','c':'color: |;','fs':'font-size: |;','fw':'font-weight: |;','ff':'font-family: |;','lh':'line-height: |;','df':'display: flex;','dg':'display: grid;','dn':'display: none;','db':'display: block;','dib':'display: inline-block;','jcc':'justify-content: center;','jcsb':'justify-content: space-between;','jcsa':'justify-content: space-around;','aic':'align-items: center;','aifs':'align-items: flex-start;','aife':'align-items: flex-end;','fdc':'flex-direction: column;','f1':'flex: 1;','fww':'flex-wrap: wrap;','posa':'position: absolute;','posr':'position: relative;','posf':'position: fixed;','poss':'position: sticky;','t':'top: |;','r':'right: |;','b':'bottom: |;','l':'left: |;','br':'border-radius: |;','brd':'border: 1px solid |;','bn':'border: none;','tac':'text-align: center;','tar':'text-align: right;','tdn':'text-decoration: none;','ttu':'text-transform: uppercase;','ovh':'overflow: hidden;','ova':'overflow: auto;','curp':'cursor: pointer;','op':'opacity: |;','z':'z-index: |;','tra':'transition: all 0.3s ease;','bs':'box-shadow: |;','gap':'gap: |;','gtc':'grid-template-columns: |;',};
 
 function doEmmet(cm,lang){const cur=cm.getCursor();const before=cm.getLine(cur.line).slice(0,cur.ch);const m=before.match(/[\w!]+$/);if(!m)return false;const tpl=(lang==='css'?EC:EH)[m[0]];if(!tpl)return false;const from={line:cur.line,ch:cur.ch-m[0].length};const ci=tpl.indexOf('|');const expanded=tpl.replace('|','');const lines=expanded.split('\n');let tl=from.line,tc=from.ch,left=ci>=0?ci:expanded.length;for(let i=0;i<lines.length;i++){if(left<=lines[i].length){tl=from.line+i;tc=(i===0?from.ch:0)+left;break;}left-=lines[i].length+1;}cm.replaceRange(expanded,from,cur);cm.setCursor({line:tl,ch:tc});return true;}
@@ -941,8 +1618,10 @@ function clearCo(){co.innerHTML='';sd.className='';}
 function run(){
   Object.keys(codes).forEach(l=>{if(eds[l])codes[l]=eds[l].getValue();});clearCo();sd.className='run';
   const ic=`<script>const _f=x=>{try{return typeof x==='object'?JSON.stringify(x,null,2):String(x)}catch{return String(x)}};const _l=(t,...a)=>window.parent.postMessage({type:'con',lv:t,tx:a.map(_f).join(' ')},'*');console.log=(...a)=>_l('lg',...a);console.warn=(...a)=>_l('lw',...a);console.error=(...a)=>_l('le',...a);console.info=(...a)=>_l('li',...a);window.onerror=(m,s,l)=>{_l('le',m+' (line '+l+')');return true;};<\/script>`;
-  let base=codes.html;if(!base.includes('<html'))base=`<!DOCTYPE html><html><head></head><body>${base}</body></html>`;
-  const final=base.replace('</head>',`<style>${codes.css}</style></head>`).replace('<head>','<head>'+ic).replace('</body>',`<script>\n${codes.js}\n<\/script></body>`);
+  let base=codes.html;if(!base.includes('<html'))base=`<!DOCTYPE html><html><head><\/head><body>${base}<\/body></html>`;
+  const moduleScript=/^\s*(?:import|export)\b/m.test(codes.js);
+  const jsOpen=moduleScript?'<script type="module">':'<script>';
+  const final=base.replace('<\/head>',`<style>${codes.css}</style><\/head>`).replace('<head>','<head>'+ic).replace('<\/body>',`${jsOpen}\n${codes.js}\n<\/script><\/body>`);
   pv.srcdoc=final;setTimeout(()=>{if(sd.className==='run')sd.className='ok';},700);
 }
 window.addEventListener('message',e=>{if(e.data?.type==='con'){addLog(e.data.lv,e.data.tx);if(e.data.lv==='le')sd.className='err';}});
