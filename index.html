@@ -97,6 +97,15 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .concept-box code{color:#f1fa8c;background:#44475a40;padding:1px 5px;border-radius:3px}
 .concept-copy p{margin-top:6px}
 .concept-copy p:first-child{margin-top:0}
+.tutorial-box{margin-top:8px;padding:8px 10px;background:#50fa7b10;border:1px solid #50fa7b30;border-radius:6px;font-size:11.5px;color:#50fa7b;font-family:'Syne',system-ui;line-height:1.6;display:none}
+.tutorial-box.show{display:block}
+.tutorial-box strong{display:block;margin-bottom:6px;color:#f8f8f2;font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+.tutorial-step{margin-top:8px;padding:8px 9px;border-radius:6px;background:#44475a20;border:1px solid #44475a50}
+.tutorial-step:first-of-type{margin-top:0}
+.tutorial-step-title{color:#50fa7b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.tutorial-step-body{color:#f8f8f2;font-size:11.5px;line-height:1.6}
+.tutorial-step-example{margin-top:6px;padding:6px 8px;background:#282a36;border:1px solid #44475a;border-radius:5px;overflow:auto}
+.tutorial-step-example code{display:block;white-space:pre-wrap;color:#f1fa8c;background:transparent;padding:0;border-radius:0}
 
 /* ── Workspace ── */
 #ws{display:flex;flex:1;overflow:hidden;min-height:0}
@@ -233,6 +242,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
       </div>
       <div id="ex-detail-body">
         <div class="ex-full-desc" id="ex-full-desc"></div>
+        <div id="tutorial-box" class="tutorial-box"></div>
         <div id="concept-box" class="concept-box"></div>
         <div id="hint-box" class="hint-box"></div>
         <div id="test-results"></div>
@@ -1080,6 +1090,156 @@ const car = {
     ]
   },
   {
+    id:98, cat:'Browser APIs', title:'Search Users With GET', diff:'medium',
+    desc:'Call an API with a GET request and query parameters.',
+    fullDesc:`Write an async function called <code>searchUsers(query, fetchImpl = fetch)</code> that calls <code>/api/users?q=...</code> with a <code>GET</code> request and returns the parsed JSON response. Do not send a request body.`,
+    hint:'Use URLSearchParams for the query string. GET requests read data from the URL, not the body.',
+    starter:`// Write an async function called searchUsers(query, fetchImpl = fetch)
+// Call /api/users with a GET request and return parsed JSON
+
+`,
+    concept:buildConcept('Use GET when you are reading data from an API. Put filters and search terms in the URL query string, not in the request body.', 'This is the standard shape for search and list endpoints.', 'const url = `/api/users?${new URLSearchParams({ q: query })}`;'),
+    tests:[
+      {desc:'Calls the API with a query string and no body', fn:async code=>{try{const calls=[];const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({ok:true})};};await getExerciseFn(code,'searchUsers')('ada',fakeFetch);const call=calls[0];const parsed=new URL(call.url,'https://example.com');return parsed.pathname==='/api/users'&&parsed.searchParams.get('q')==='ada'&&call.options.method==='GET'&&!('body' in call.options);}catch(e){return false;}}},
+      {desc:'Returns parsed JSON from the response', fn:async code=>{try{const fakeFetch=async()=>({json:async()=>({users:['Ada']})});const result=await getExerciseFn(code,'searchUsers')('ada',fakeFetch);return JSON.stringify(result)==='{"users":["Ada"]}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:99, cat:'Browser APIs', title:'Create User With POST', diff:'medium',
+    desc:'Send JSON data to an API with the correct request body.',
+    fullDesc:`Write an async function called <code>createUser(user, fetchImpl = fetch)</code> that sends a <code>POST</code> request to <code>/api/users</code> with <code>Content-Type: application/json</code> and a JSON string body made with <code>JSON.stringify()</code>. Return the parsed JSON response.`,
+    hint:'POST requests send data in the body. Convert the object to a JSON string before sending it.',
+    starter:`// Write an async function called createUser(user, fetchImpl = fetch)
+// Send a POST request with a JSON body and return parsed JSON
+
+`,
+    concept:buildConcept('Use POST when you are sending new data or creating a resource. Convert the JavaScript object into a JSON string with <code>JSON.stringify()</code> before putting it in the request body.', 'That is the standard pattern for JSON APIs and form-like data sent from JavaScript.', 'body: JSON.stringify(user)'),
+    tests:[
+      {desc:'Sends a POST request with JSON body', fn:async code=>{try{const calls=[];const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({id:1,...JSON.parse(options.body)})};};const user={name:'Ada',role:'admin'};const result=await getExerciseFn(code,'createUser')(user,fakeFetch);const call=calls[0];return call.url==='/api/users'&&call.options.method==='POST'&&call.options.headers['Content-Type']==='application/json'&&call.options.body===JSON.stringify(user)&&result.id===1&&result.name==='Ada'&&user.role==='admin';}catch(e){return false;}}},
+      {desc:'Does not mutate the original user object', fn:async code=>{try{const user={name:'Grace'};const fakeFetch=async()=>({json:async()=>({ok:true})});await getExerciseFn(code,'createUser')(user,fakeFetch);return JSON.stringify(user)==='{"name":"Grace"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:100, cat:'Browser APIs', title:'Parse API JSON', diff:'easy',
+    desc:'Convert a JSON string into a JavaScript value.',
+    fullDesc:`Write a function called <code>parseApiResponse(jsonText)</code> that returns the JavaScript value created by parsing the JSON string with <code>JSON.parse()</code>.`,
+    hint:'Use JSON.parse when the data starts as text and you need an object or array.',
+    starter:`// Write a function called parseApiResponse(jsonText)
+// Return the parsed JavaScript value
+
+`,
+    concept:buildConcept('Use JSON.parse when you receive JSON as text and need a real JavaScript object or array.', 'You will see this with API response text, localStorage strings, and files that store JSON in plain text.', 'const data = JSON.parse(jsonText);'),
+    tests:[
+      {desc:'Parses an object string', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'parseApiResponse')('{"name":"Ada","active":true}'))==='{"name":"Ada","active":true}';}catch(e){return false;}}},
+      {desc:'Parses an array string', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'parseApiResponse')('[1,2,3]'))==='[1,2,3]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:101, cat:'Browser APIs', title:'Serialize API Payload', diff:'easy',
+    desc:'Turn a JavaScript value into JSON text.',
+    fullDesc:`Write a function called <code>serializeApiPayload(data)</code> that returns a JSON string created with <code>JSON.stringify()</code>.`,
+    hint:'Use JSON.stringify when the API or storage needs a string version of your data.',
+    starter:`// Write a function called serializeApiPayload(data)
+// Return a JSON string
+
+`,
+    concept:buildConcept('Use JSON.stringify when you have a JavaScript object or array and need to turn it into JSON text.', 'That string is what you send in request bodies or save in places that only store text.', 'const body = JSON.stringify(payload);'),
+    tests:[
+      {desc:'Stringifies an object', fn:code=>{try{return getExerciseFn(code,'serializeApiPayload')({name:'Ada',active:true})==='{"name":"Ada","active":true}';}catch(e){return false;}}},
+      {desc:'Stringifies nested data', fn:code=>{try{return getExerciseFn(code,'serializeApiPayload')({tags:['js','api']})==='{"tags":["js","api"]}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:102, cat:'HTTP & Auth', title:'Build Basic Auth Header', diff:'easy',
+    desc:'Create the Authorization header used by Basic auth.',
+    fullDesc:`Write a function called <code>buildBasicAuthHeader(username, password)</code> that returns an object with an <code>Authorization</code> header using Basic auth. The value should be <code>Basic</code> plus the base64-encoded <code>username:password</code> string.`,
+    hint:'Use btoa on "username:password" and prefix it with Basic.',
+    starter:`// Write a function called buildBasicAuthHeader(username, password)
+// Return { Authorization: "Basic ..." }
+
+`,
+    concept:buildConcept('Use Basic auth when an API expects a username and password in the Authorization header.', 'It is common in demos, internal APIs, and legacy systems. In practice you usually send it over HTTPS and avoid storing real credentials in code.', 'const header = { Authorization: `Basic ${btoa(`${username}:${password}`)}` };'),
+    tests:[
+      {desc:'Creates a Basic Authorization header', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'buildBasicAuthHeader')('alice','secret'))==='{"Authorization":"Basic YWxpY2U6c2VjcmV0"}';}catch(e){return false;}}},
+      {desc:'Encodes the username and password together', fn:code=>{try{return getExerciseFn(code,'buildBasicAuthHeader')('api','123').Authorization===`Basic ${btoa('api:123')}`;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:103, cat:'HTTP & Auth', title:'Build Bearer Request', diff:'easy',
+    desc:'Attach a Bearer token when calling a protected endpoint.',
+    fullDesc:`Write an async function called <code>buildBearerRequest(url, token, fetchImpl = fetch)</code> that sends a <code>GET</code> request with an <code>Authorization: Bearer ...</code> header and returns the parsed JSON response.`,
+    hint:'Bearer tokens go in the Authorization header, not in the body or query string.',
+    starter:`// Write an async function called buildBearerRequest(url, token, fetchImpl = fetch)
+// Call a protected endpoint with a Bearer token and return parsed JSON
+
+`,
+    concept:buildConcept('Use Bearer auth when the API gives you a token to send on later requests.', 'This is the most common pattern after login: store the token, then add it to the Authorization header for protected routes.', 'headers: { Authorization: `Bearer ${token}` }'),
+    tests:[
+      {desc:'Sends a GET request with a Bearer token', fn:async code=>{try{const calls=[];const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({ok:true})};};const result=await getExerciseFn(code,'buildBearerRequest')('/api/me','abc123',fakeFetch);const call=calls[0];return call.url==='/api/me'&&call.options.method==='GET'&&call.options.headers.Authorization==='Bearer abc123'&&result.ok===true;}catch(e){return false;}}},
+      {desc:'Returns the parsed response body', fn:async code=>{try{const fakeFetch=async()=>({json:async()=>({user:'Ada'})});const result=await getExerciseFn(code,'buildBearerRequest')('/api/me','token',fakeFetch);return JSON.stringify(result)==='{"user":"Ada"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:104, cat:'HTTP & Auth', title:'Login and Store Token', diff:'medium',
+    desc:'Send credentials in the body, receive a token, and store it.',
+    fullDesc:`Write an async function called <code>loginAndStoreToken(credentials, fetchImpl = fetch, storage = localStorage)</code> that sends a <code>POST</code> request to <code>/api/login</code> with a JSON body, reads the JSON response, stores the returned <code>token</code> under <code>auth.token</code>, and returns the token.`,
+    hint:'Put credentials in the request body, parse the JSON response, then save the token for later requests.',
+    starter:`// Write an async function called loginAndStoreToken(credentials, fetchImpl = fetch, storage = localStorage)
+// Return the token after saving it to storage
+
+`,
+    concept:buildConcept('Use POST for login because credentials belong in the request body, not the URL.', 'After a successful login, the API usually returns a token you can store and reuse for authenticated requests.', 'body: JSON.stringify(credentials)'),
+    tests:[
+      {desc:'Posts credentials and stores the returned token', fn:async code=>{try{const calls=[];const storage={setItem:(key,value)=>calls.push({key,value})};const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({token:'abc123',user:{name:'Ada'}})};};const result=await getExerciseFn(code,'loginAndStoreToken')({email:'ada@example.com',password:'secret'},fakeFetch,storage);const req=calls.find(call=>call.url);const stored=calls.find(call=>call.key);return req.url==='/api/login'&&req.options.method==='POST'&&req.options.headers['Content-Type']==='application/json'&&req.options.body===JSON.stringify({email:'ada@example.com',password:'secret'})&&stored.key==='auth.token'&&stored.value==='abc123'&&result==='abc123';}catch(e){return false;}}},
+      {desc:'Does not mutate the credentials object', fn:async code=>{try{const credentials={email:'grace@example.com',password:'pw'};const fakeFetch=async()=>({json:async()=>({token:'t1'})});await getExerciseFn(code,'loginAndStoreToken')(credentials,fakeFetch,{setItem:()=>{}});return JSON.stringify(credentials)==='{"email":"grace@example.com","password":"pw"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:105, cat:'HTTP & Auth', title:'Fetch Protected Profile', diff:'medium',
+    desc:'Call a protected GET endpoint with a Bearer token.',
+    fullDesc:`Write an async function called <code>fetchProtectedProfile(token, fetchImpl = fetch)</code> that sends a <code>GET</code> request to <code>/api/me</code> with a Bearer token and returns the parsed JSON profile.`,
+    hint:'This is the standard shape for a protected read request: GET plus an Authorization header.',
+    starter:`// Write an async function called fetchProtectedProfile(token, fetchImpl = fetch)
+// Return the parsed profile JSON
+
+`,
+    concept:buildConcept('Use a protected GET request when the API needs a token before returning private data.', 'This is common for profile pages, dashboards, and any endpoint that should only work for signed-in users.', 'headers: { Authorization: `Bearer ${token}` }'),
+    tests:[
+      {desc:'Sends a protected GET request with a Bearer token', fn:async code=>{try{const calls=[];const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({name:'Ada'})};};const result=await getExerciseFn(code,'fetchProtectedProfile')('abc',fakeFetch);const call=calls[0];return call.url==='/api/me'&&call.options.method==='GET'&&call.options.headers.Authorization==='Bearer abc'&&result.name==='Ada';}catch(e){return false;}}},
+      {desc:'Returns the parsed profile data', fn:async code=>{try{const fakeFetch=async()=>({json:async()=>({name:'Grace',role:'admin'})});const result=await getExerciseFn(code,'fetchProtectedProfile')('tok',fakeFetch);return JSON.stringify(result)==='{"name":"Grace","role":"admin"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:106, cat:'HTTP & Auth', title:'Update Profile With PATCH', diff:'medium',
+    desc:'Send updated JSON data to a protected endpoint.',
+    fullDesc:`Write an async function called <code>updateProfile(token, updates, fetchImpl = fetch)</code> that sends a <code>PATCH</code> request to <code>/api/me</code> with a Bearer token and a JSON body created with <code>JSON.stringify()</code>. Return the parsed JSON response.`,
+    hint:'PATCH is for partial updates. Put the changed fields in the body and keep the auth token in the header.',
+    starter:`// Write an async function called updateProfile(token, updates, fetchImpl = fetch)
+// Send a PATCH request with JSON body and Bearer auth
+
+`,
+    concept:buildConcept('Use PATCH when you are updating part of an existing resource.', 'The changed fields belong in the JSON body, while the Bearer token stays in the Authorization header.', 'method: "PATCH"'),
+    tests:[
+      {desc:'Sends a PATCH request with auth and JSON body', fn:async code=>{try{const calls=[];const fakeFetch=async(url,options)=>{calls.push({url,options});return {json:async()=>({ok:true,...JSON.parse(options.body)})};};const updates={displayName:'Ada L.'};const result=await getExerciseFn(code,'updateProfile')('abc123',updates,fakeFetch);const call=calls[0];return call.url==='/api/me'&&call.options.method==='PATCH'&&call.options.headers.Authorization==='Bearer abc123'&&call.options.headers['Content-Type']==='application/json'&&call.options.body===JSON.stringify(updates)&&result.displayName==='Ada L.';}catch(e){return false;}}},
+      {desc:'Does not mutate the updates object', fn:async code=>{try{const updates={theme:'dark'};const fakeFetch=async()=>({json:async()=>({ok:true})});await getExerciseFn(code,'updateProfile')('token',updates,fakeFetch);return JSON.stringify(updates)==='{"theme":"dark"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:107, cat:'HTTP & Auth', title:'Handle Unauthorized Response', diff:'hard',
+    desc:'Check response status and stop when auth fails.',
+    fullDesc:`Write an async function called <code>loadSecretData(token, fetchImpl = fetch)</code> that requests <code>/api/secret</code> with a Bearer token. If the response status is <code>401</code> or <code>403</code>, throw an error with the message <code>Unauthorized</code>. Otherwise return the parsed JSON response.`,
+    hint:'Check response status before parsing the body. Unauthorized should short-circuit the happy path.',
+    starter:`// Write an async function called loadSecretData(token, fetchImpl = fetch)
+// Throw on 401/403 and return parsed JSON otherwise
+
+`,
+    concept:buildConcept('Use the response status to decide whether a request succeeded before you parse the body.', '401 usually means the token is missing or invalid, while 403 means the token exists but does not have permission.', 'if (response.status === 401) throw new Error("Unauthorized");'),
+    tests:[
+      {desc:'Throws an Unauthorized error on 401', fn:async code=>{try{const fakeFetch=async()=>({status:401,json:async()=>({message:'nope'})});await getExerciseFn(code,'loadSecretData')('bad',fakeFetch);return false;}catch(e){return e instanceof Error&&e.message==='Unauthorized';}}},
+      {desc:'Returns parsed data when authorized', fn:async code=>{try{const fakeFetch=async()=>({status:200,json:async()=>({secret:'open-sesame'})});const result=await getExerciseFn(code,'loadSecretData')('good',fakeFetch);return JSON.stringify(result)==='{"secret":"open-sesame"}';}catch(e){return false;}}}
+    ]
+  },
+  {
     id:53, cat:'DOM', title:'Serialize Form', diff:'medium',
     desc:'Turn form inputs into a plain object.',
     fullDesc:`Write a function called <code>serializeForm(form)</code> that returns an object built from the named fields inside <code>form</code>.`,
@@ -1483,6 +1643,186 @@ const car = {
     ]
   },
   {
+    id:86, cat:'Destructuring & Spread', title:'Object Destructuring Basics', diff:'easy',
+    desc:'Pull named fields out of an object.',
+    fullDesc:`Write a function called <code>formatUserCard(user)</code> that destructures <code>name</code> and <code>role</code> from the object and returns a string like <code>"Ada - Developer"</code>.`,
+    hint:'Destructure the fields you need, then build the string.',
+    starter:`// Write a function called formatUserCard(user)
+// Return "Name - Role"
+
+`,
+    concept:buildConcept('Use object destructuring when you want to pull named properties out of an object in one step.', 'It keeps code compact and makes it obvious which fields the function depends on.', 'const { name, role } = user;'),
+    tests:[
+      {desc:'Formats the user card from object fields', fn:code=>{try{return getExerciseFn(code,'formatUserCard')({name:'Ada',role:'Developer'})==='Ada - Developer';}catch(e){return false;}}},
+      {desc:'Works with a different user object', fn:code=>{try{return getExerciseFn(code,'formatUserCard')({name:'Grace',role:'Engineer'})==='Grace - Engineer';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:87, cat:'Destructuring & Spread', title:'Rename and Default Values', diff:'easy',
+    desc:'Rename object fields and provide fallbacks.',
+    fullDesc:`Write a function called <code>formatProfile(profile)</code> that renames <code>firstName</code> to <code>name</code>, renames <code>lastName</code> to <code>surname</code>, and gives <code>role</code> a default value of <code>Developer</code> when it is missing. Return a string like <code>"Ada Lovelace - Developer"</code>.`,
+    hint:'Rename the properties as you destructure them, and set a default for role.',
+    starter:`// Write a function called formatProfile(profile)
+// Return "First Last - Role"
+
+`,
+    concept:buildConcept('Use renaming when the source property name is not the local variable name you want, and use defaults when the value might be missing.', 'This is common when you adapt API data or configuration objects into clearer local variables.', 'const { firstName: name, role = "Developer" } = profile;'),
+    tests:[
+      {desc:'Uses the default role when it is missing', fn:code=>{try{return getExerciseFn(code,'formatProfile')({firstName:'Ada',lastName:'Lovelace'})==='Ada Lovelace - Developer';}catch(e){return false;}}},
+      {desc:'Uses the provided role when present', fn:code=>{try{return getExerciseFn(code,'formatProfile')({firstName:'Grace',lastName:'Hopper',role:'Engineer'})==='Grace Hopper - Engineer';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:88, cat:'Destructuring & Spread', title:'Nested Object Destructuring', diff:'medium',
+    desc:'Read values from a deeply nested object.',
+    fullDesc:`Write a function called <code>getShippingLabel(order)</code> that destructures <code>customer.name</code> and <code>shipping.address.city</code> plus <code>shipping.address.zip</code> from an order object and returns a string like <code>"Ada - London E1"</code>. If the shipping address is missing, use <code>Unknown</code> and <code>N/A</code>.`,
+    hint:'Use nested destructuring and provide fallback objects so missing nested values do not throw.',
+    starter:`// Write a function called getShippingLabel(order)
+// Return "Name - City Zip"
+
+`,
+    concept:buildConcept('Use nested destructuring when your data has layers, such as API responses or form submissions.', 'If a nested object may be missing, give that level a default empty object so the destructuring stays safe.', 'const { shipping: { address: { city = "Unknown" } = {} } = {} } = order;'),
+    tests:[
+      {desc:'Builds a shipping label from nested data', fn:code=>{try{return getExerciseFn(code,'getShippingLabel')({customer:{name:'Ada'},shipping:{address:{city:'London',zip:'E1'}}})==='Ada - London E1';}catch(e){return false;}}},
+      {desc:'Uses fallback values when shipping is missing', fn:code=>{try{return getExerciseFn(code,'getShippingLabel')({customer:{name:'Grace'}})==='Grace - Unknown N/A';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:89, cat:'Destructuring & Spread', title:'Array Destructuring Basics', diff:'easy',
+    desc:'Pull the first items out of a list.',
+    fullDesc:`Write a function called <code>pickFirstTwo(items)</code> that uses array destructuring to read the first two values from an array and returns them in an object as <code>first</code> and <code>second</code>. If the array is too short, use <code>None</code> as the missing value.`,
+    hint:'Array destructuring follows order, so the first variable gets the first item.',
+    starter:`// Write a function called pickFirstTwo(items)
+// Return { first, second }
+
+`,
+    concept:buildConcept('Use array destructuring when position matters more than the property name.', 'Defaults help when a list may be shorter than expected, which is common when you read user input or query results.', 'const [first = "None", second = "None"] = items;'),
+    tests:[
+      {desc:'Returns the first two items', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'pickFirstTwo')(['draft','review','done']))==='{"first":"draft","second":"review"}';}catch(e){return false;}}},
+      {desc:'Uses defaults when the array is short', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'pickFirstTwo')(['draft']))==='{"first":"draft","second":"None"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:90, cat:'Destructuring & Spread', title:'Skip and Rest Items', diff:'medium',
+    desc:'Skip array positions and collect the remainder.',
+    fullDesc:`Write a function called <code>summarizeQueue(queue)</code> that uses array destructuring to capture the first item, skip the second item, capture the third item, and collect the remaining items into a rest array. Return an object with <code>first</code>, <code>third</code>, and <code>remaining</code>.`,
+    hint:'Use an empty slot to skip a position and <code>...rest</code> to collect what comes after.',
+    starter:`// Write a function called summarizeQueue(queue)
+// Return { first, third, remaining }
+
+`,
+    concept:buildConcept('Use skipped slots and rest elements when you only care about certain positions in a list.', 'This pattern is common when you need the head of a queue and the leftover items for later processing.', 'const [first, , third, ...remaining] = queue;'),
+    tests:[
+      {desc:'Skips the second item and keeps the rest', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'summarizeQueue')(['lint','typecheck','test','build']))==='{"first":"lint","third":"test","remaining":["build"]}';}catch(e){return false;}}},
+      {desc:'Handles shorter queues', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'summarizeQueue')(['lint']))==='{"first":"lint","remaining":[]}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:91, cat:'Destructuring & Spread', title:'Function Parameter Destructuring', diff:'easy',
+    desc:'Read fields directly from an object argument.',
+    fullDesc:`Write a function called <code>formatRepository(repo)</code> that destructures <code>name</code>, <code>owner</code>, and <code>stars</code> from the argument list and returns a string like <code>"team/app (42 stars)"</code>. If <code>stars</code> is missing, use <code>0</code>.`,
+    hint:'Destructure the object in the function signature and give stars a default value.',
+    starter:`// Write a function called formatRepository(repo)
+// Return "owner/name (stars stars)"
+
+`,
+    concept:buildConcept('Use destructuring in function parameters when the function expects one shaped object and only needs a few fields.', 'This is common in utility functions, handlers, and component code because it keeps the call site clean and the implementation direct.', 'function formatRepository({ name, owner, stars = 0 }) { ... }'),
+    tests:[
+      {desc:'Formats repository data from destructured parameters', fn:code=>{try{return getExerciseFn(code,'formatRepository')({name:'app',owner:'team',stars:42})==='team/app (42 stars)';}catch(e){return false;}}},
+      {desc:'Uses a default star count when missing', fn:code=>{try{return getExerciseFn(code,'formatRepository')({name:'lib',owner:'core'})==='core/lib (0 stars)';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:92, cat:'Destructuring & Spread', title:'Object Rest Omit Secret Fields', diff:'medium',
+    desc:'Remove private properties while keeping the rest.',
+    fullDesc:`Write a function called <code>sanitizeUser(user)</code> that removes <code>password</code> and <code>token</code> from the object using object rest syntax and returns the remaining public fields as a new object.`,
+    hint:'Destructure the private fields and collect the rest into a new object.',
+    starter:`// Write a function called sanitizeUser(user)
+// Return a copy without password or token
+
+`,
+    concept:buildConcept('Use object rest when you want to omit a few keys and keep everything else.', 'This is a common pattern for sanitizing API payloads, logging data, or stripping secrets before sending an object somewhere else.', 'const { password, token, ...publicUser } = user;'),
+    tests:[
+      {desc:'Removes secret fields from the copy', fn:code=>{try{const user={name:'Ada',email:'ada@example.com',password:'pw',token:'abc'};const result=getExerciseFn(code,'sanitizeUser')(user);return JSON.stringify(result)==='{"name":"Ada","email":"ada@example.com"}'&&user.password==='pw'&&user.token==='abc';}catch(e){return false;}}},
+      {desc:'Keeps other public fields intact', fn:code=>{try{const user={name:'Grace',role:'Engineer',password:'secret'};return JSON.stringify(getExerciseFn(code,'sanitizeUser')(user))==='{"name":"Grace","role":"Engineer"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:93, cat:'Destructuring & Spread', title:'Build Class Names', diff:'easy',
+    desc:'Use rest parameters to gather an unknown number of class strings.',
+    fullDesc:`Write a function called <code>buildClassName(...parts)</code> that takes any number of class name parts, removes falsy values, and returns a single space-separated string.`,
+    hint:'Rest parameters collect arguments into an array, then filter out anything falsy before joining.',
+    starter:`// Write a function called buildClassName(...parts)
+// Return a space-separated class string
+
+`,
+    concept:buildConcept('Use rest parameters when a function should accept an open-ended list of arguments.', 'This is especially common in codebases for helpers like class name builders, formatters, or logging wrappers.', 'function buildClassName(...parts) { return parts.filter(Boolean).join(" "); }'),
+    tests:[
+      {desc:'Joins truthy class name parts', fn:code=>{try{return getExerciseFn(code,'buildClassName')('btn',null,'btn-primary',false,'is-active')==='btn btn-primary is-active';}catch(e){return false;}}},
+      {desc:'Returns an empty string when nothing is passed', fn:code=>{try{return getExerciseFn(code,'buildClassName')()==='';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:94, cat:'Destructuring & Spread', title:'Merge Settings with Spread', diff:'easy',
+    desc:'Clone and merge configuration objects.',
+    fullDesc:`Write a function called <code>mergeSettings(baseSettings, overrides)</code> that returns a new object using object spread syntax. The values in <code>overrides</code> should replace any matching keys from <code>baseSettings</code>.`,
+    hint:'Spread the base object first, then spread the overrides on top so they win.',
+    starter:`// Write a function called mergeSettings(baseSettings, overrides)
+// Return a new merged object
+
+`,
+    concept:buildConcept('Use object spread when you need a new object that starts with one set of values and then layers overrides on top.', 'This is the standard immutable update pattern for configs, props, and state objects.', 'const merged = { ...base, ...overrides };'),
+    tests:[
+      {desc:'Merges overrides onto the base settings', fn:code=>{try{const base={theme:'light',pageSize:10};const overrides={pageSize:20,showTips:false};const result=getExerciseFn(code,'mergeSettings')(base,overrides);return JSON.stringify(result)==='{"theme":"light","pageSize":20,"showTips":false}';}catch(e){return false;}}},
+      {desc:'Does not mutate either input object', fn:code=>{try{const base={theme:'dark'};const overrides={showTips:true};getExerciseFn(code,'mergeSettings')(base,overrides);return JSON.stringify(base)==='{"theme":"dark"}'&&JSON.stringify(overrides)==='{"showTips":true}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:95, cat:'Destructuring & Spread', title:'Combine Todo Lists', diff:'easy',
+    desc:'Clone and concatenate arrays without mutation.',
+    fullDesc:`Write a function called <code>combineTodoLists(pinned, regular)</code> that returns a new array containing all items from <code>pinned</code> followed by all items from <code>regular</code> using array spread syntax.`,
+    hint:'Spread both arrays into a fresh array so the originals stay unchanged.',
+    starter:`// Write a function called combineTodoLists(pinned, regular)
+// Return a new combined array
+
+`,
+    concept:buildConcept('Use array spread when you need a new array built from one or more existing arrays.', 'This is the standard way to concatenate lists immutably in a codebase.', 'const combined = [...pinned, ...regular];'),
+    tests:[
+      {desc:'Combines both arrays in order', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'combineTodoLists')(['fix lint'],['write tests','ship']))==='["fix lint","write tests","ship"]';}catch(e){return false;}}},
+      {desc:'Keeps the original arrays unchanged', fn:code=>{try{const pinned=['fix lint'];const regular=['write tests'];getExerciseFn(code,'combineTodoLists')(pinned,regular);return JSON.stringify(pinned)==='["fix lint"]'&&JSON.stringify(regular)==='["write tests"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:96, cat:'Destructuring & Spread', title:'Spread Into Function Calls', diff:'medium',
+    desc:'Pass an array into a function that expects separate arguments.',
+    fullDesc:`Write a function called <code>highestPriority(priorities)</code> that returns the largest number in the array using spread syntax in a function call. If the array is empty, return <code>0</code>.`,
+    hint:'Spread the array into <code>Math.max()</code> so each number becomes its own argument.',
+    starter:`// Write a function called highestPriority(priorities)
+// Return the largest number or 0
+
+`,
+    concept:buildConcept('Use spread in a function call when you already have an array but the function expects separate arguments.', 'This is common for helpers like <code>Math.max()</code>, <code>Math.min()</code>, or your own variadic utilities.', 'const max = Math.max(...priorities);'),
+    tests:[
+      {desc:'Returns the highest number from the list', fn:code=>{try{return getExerciseFn(code,'highestPriority')([3,8,5,1])===8;}catch(e){return false;}}},
+      {desc:'Returns 0 for an empty array', fn:code=>{try{return getExerciseFn(code,'highestPriority')([])===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:97, cat:'Destructuring & Spread', title:'Update Nested Preferences', diff:'hard',
+    desc:'Update a nested object without losing the rest of the data.',
+    fullDesc:`Write a function called <code>updatePreferences(user, updates)</code> that returns a new user object with <code>preferences</code> merged immutably. If <code>preferences</code> does not exist yet, start with an empty object.`,
+    hint:'Spread the outer object first, then spread the existing preferences and the updates into a new nested object.',
+    starter:`// Write a function called updatePreferences(user, updates)
+// Return a new user object with merged preferences
+
+`,
+    concept:buildConcept('Use nested object spread when you need to update part of a bigger state object without mutating the original.', 'This is one of the most common immutable update patterns in codebases, especially when working with settings, forms, or UI state.', 'const nextUser = { ...user, preferences: { ...user.preferences, theme: "dark" } };'),
+    tests:[
+      {desc:'Merges nested preferences immutably', fn:code=>{try{const user={name:'Ada',preferences:{theme:'light',alerts:true}};const updates={theme:'dark'};const result=getExerciseFn(code,'updatePreferences')(user,updates);return JSON.stringify(result)==='{"name":"Ada","preferences":{"theme":"dark","alerts":true}}'&&JSON.stringify(user)==='{"name":"Ada","preferences":{"theme":"light","alerts":true}}';}catch(e){return false;}}},
+      {desc:'Creates preferences when they are missing', fn:code=>{try{const user={name:'Grace'};const result=getExerciseFn(code,'updatePreferences')(user,{alerts:false});return JSON.stringify(result)==='{"name":"Grace","preferences":{"alerts":false}}';}catch(e){return false;}}}
+    ]
+  },
+  {
     id:82, cat:'Mini Projects', title:'Cart Summary', diff:'medium',
     desc:'Combine array methods to build a checkout summary.',
     fullDesc:`Write a function called <code>summarizeCart(items)</code> that returns an object with <code>count</code>, <code>subtotal</code>, <code>featuredCount</code>, and <code>labels</code>. <code>subtotal</code> is the sum of <code>price * quantity</code> with a default quantity of 1, <code>featuredCount</code> counts items with a price of at least 10, and <code>labels</code> is a sorted array of strings like <code>"Tea x2"</code>.`,
@@ -1536,6 +1876,427 @@ const car = {
     tests:[
       {desc:'Builds an async team snapshot', fn:async code=>{try{const result=await getExerciseFn(code,'loadTeamSnapshot')(async()=>[{name:'Grace Hopper',active:true},{name:'Ada Lovelace',active:true},{name:'Katherine Johnson',active:false}]);return JSON.stringify(result)==='{"total":3,"active":2,"initials":["A.L.","G.H.","K.J."]}';}catch(e){return false;}}},
       {desc:'Handles an empty async result', fn:async code=>{try{return JSON.stringify(await getExerciseFn(code,'loadTeamSnapshot')(async()=>[]))==='{"total":0,"active":0,"initials":[]}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:108, cat:'Error Handling', title:'Validate Profile Input', diff:'easy',
+    desc:'Throw useful errors when required fields are missing.',
+    fullDesc:`Write a function called <code>validateProfile(profile)</code> that throws <code>Error</code> with the message <code>Missing name</code> if <code>name</code> is blank, throws <code>Missing email</code> if <code>email</code> is blank, and otherwise returns a new object with both values trimmed.`,
+    hint:'Validate one field at a time and throw early with a clear message.',
+    starter:`// Write a function called validateProfile(profile)
+// Throw on missing values and return trimmed data
+
+`,
+    concept:buildConcept('Use errors to stop invalid work early and make failures obvious.', 'Validation code usually checks each required value, throws a clear message, and keeps the rest of the program from running with bad data.', 'throw new Error("Missing name");'),
+    tests:[
+      {desc:'Returns trimmed profile data when valid', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'validateProfile')({name:' Ada ',email:'ada@example.com'}))==='{"name":"Ada","email":"ada@example.com"}';}catch(e){return false;}}},
+      {desc:'Throws when the name is missing', fn:code=>{try{getExerciseFn(code,'validateProfile')({email:'ada@example.com'});return false;}catch(e){return e instanceof Error&&e.message==='Missing name';}}},
+      {desc:'Throws when the email is missing', fn:code=>{try{getExerciseFn(code,'validateProfile')({name:'Ada'});return false;}catch(e){return e instanceof Error&&e.message==='Missing email';}}}
+    ]
+  },
+  {
+    id:109, cat:'Error Handling', title:'Parse Config Safely', diff:'easy',
+    desc:'Use try/catch to fall back when JSON is invalid.',
+    fullDesc:`Write a function called <code>parseConfig(text, fallback = {})</code> that returns the parsed JSON when <code>text</code> is valid, and returns <code>fallback</code> when parsing fails.`,
+    hint:'Wrap JSON.parse in try/catch and return the fallback from the catch branch.',
+    starter:`// Write a function called parseConfig(text, fallback = {})
+// Return parsed JSON or the fallback value
+
+`,
+    concept:buildConcept('Use try/catch when external text may not be valid JSON.', 'This pattern is common for config files, localStorage values, or any input that may be malformed and needs a safe default.', 'try { return JSON.parse(text); } catch { return fallback; }'),
+    tests:[
+      {desc:'Parses valid JSON text', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'parseConfig')('{"theme":"dark"}'))==='{"theme":"dark"}';}catch(e){return false;}}},
+      {desc:'Returns the fallback on invalid JSON', fn:code=>{try{const fallback={theme:'light'};return JSON.stringify(getExerciseFn(code,'parseConfig')('not json',fallback))==='{"theme":"light"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:110, cat:'Error Handling', title:'Fetch JSON or Throw', diff:'medium',
+    desc:'Check HTTP status before parsing a response.',
+    fullDesc:`Write an async function called <code>fetchJsonOrThrow(url, fetchImpl = fetch)</code> that calls <code>fetchImpl(url)</code>, throws an error with the message <code>Request failed: STATUS</code> if <code>response.ok</code> is false, and otherwise returns the parsed JSON response.`,
+    hint:'Check response.ok first. Only parse the body if the response succeeded.',
+    starter:`// Write an async function called fetchJsonOrThrow(url, fetchImpl = fetch)
+// Throw on non-OK responses and return parsed JSON
+
+`,
+    concept:buildConcept('Use response status checks when the server may respond with an error page or error payload.', 'Parsing a failed response as if it succeeded often hides the real problem, so make the failure explicit first.', 'if (!response.ok) throw new Error(`Request failed: ${response.status}`);'),
+    tests:[
+      {desc:'Returns parsed JSON on success', fn:async code=>{try{const fakeFetch=async()=>({ok:true,status:200,json:async()=>({user:'Ada'})});const result=await getExerciseFn(code,'fetchJsonOrThrow')('/api/user',fakeFetch);return JSON.stringify(result)==='{"user":"Ada"}';}catch(e){return false;}}},
+      {desc:'Throws with the HTTP status on failure', fn:async code=>{try{const fakeFetch=async()=>({ok:false,status:500,json:async()=>({error:'fail'})});await getExerciseFn(code,'fetchJsonOrThrow')('/api/user',fakeFetch);return false;}catch(e){return e instanceof Error&&e.message==='Request failed: 500';}}}
+    ]
+  },
+  {
+    id:111, cat:'Async', title:'Retry Failed Request', diff:'hard',
+    desc:'Retry a request until it succeeds or you run out of attempts.',
+    fullDesc:`Write an async function called <code>retryFetchJson(url, fetchImpl = fetch, retries = 3)</code> that keeps trying to fetch <code>url</code> until a response with <code>ok === true</code> is returned. If all attempts fail, throw the last error or a generic failure error.`,
+    hint:'Wrap the request in a loop and keep trying until it works or the attempt limit is reached.',
+    starter:`// Write an async function called retryFetchJson(url, fetchImpl = fetch, retries = 3)
+// Retry failed requests and return parsed JSON
+
+`,
+    concept:buildConcept('Use retries when a request may fail temporarily but succeed a moment later.', 'This is common for flaky network calls, rate-limited services, or APIs that are briefly unavailable.', 'for (let attempt = 0; attempt < retries; attempt++) { ... }'),
+    tests:[
+      {desc:'Retries until the request succeeds', fn:async code=>{try{let calls=0;const fakeFetch=async()=>{calls+=1;return calls<3?{ok:false,status:503,json:async()=>({})}:{ok:true,status:200,json:async()=>({ok:true})};};const result=await getExerciseFn(code,'retryFetchJson')('/api/data',fakeFetch,5);return result.ok===true&&calls===3;}catch(e){return false;}}},
+      {desc:'Throws after all retries fail', fn:async code=>{try{const fakeFetch=async()=>({ok:false,status:500,json:async()=>({})});await getExerciseFn(code,'retryFetchJson')('/api/data',fakeFetch,2);return false;}catch(e){return true;}}}
+    ]
+  },
+  {
+    id:112, cat:'Async', title:'Race Request Timeout', diff:'medium',
+    desc:'Stop waiting if a request takes too long.',
+    fullDesc:`Write an async function called <code>fetchWithTimeout(url, ms, fetchImpl = fetch)</code> that returns the parsed JSON response if the request completes before the timeout. If the timeout wins, throw an error with the message <code>Timeout</code>.`,
+    hint:'Promise.race can wait on the fetch and a timer at the same time.',
+    starter:`// Write an async function called fetchWithTimeout(url, ms, fetchImpl = fetch)
+// Return parsed JSON or throw Timeout
+
+`,
+    concept:buildConcept('Use Promise.race when you want the first of several async operations to decide the outcome.', 'This is a common way to add a timeout to network requests or to choose the fastest response.', 'await Promise.race([fetchPromise, timeoutPromise]);'),
+    tests:[
+      {desc:'Returns data when the request finishes first', fn:async code=>{try{const fakeFetch=async()=>({json:async()=>({ok:true})});const result=await getExerciseFn(code,'fetchWithTimeout')('/api/data',1000,fakeFetch);return JSON.stringify(result)==='{"ok":true}';}catch(e){return false;}}},
+      {desc:'Throws Timeout when the timer wins', fn:async code=>{try{const slowFetch=async()=>new Promise(resolve=>setTimeout(()=>resolve({json:async()=>({ok:true})}),10));await getExerciseFn(code,'fetchWithTimeout')('/api/data',1,slowFetch);return false;}catch(e){return e instanceof Error&&e.message==='Timeout';}}}
+    ]
+  },
+  {
+    id:113, cat:'Data Structures', title:'Index Items With Map', diff:'easy',
+    desc:'Build a lookup table from item ids to items.',
+    fullDesc:`Write a function called <code>indexById(items)</code> that returns a <code>Map</code> where each item's <code>id</code> is the key and the original item is the value.`,
+    hint:'Map is ideal when you need fast lookups by a non-string key or an id.',
+    starter:`// Write a function called indexById(items)
+// Return a Map keyed by item id
+
+`,
+    concept:buildConcept('Use Map when you need a lookup table with explicit insertion order and fast key-based access.', 'Maps are common for indexes, caches, registries, and other data that is keyed by ids or names.', 'const index = new Map(items.map(item => [item.id, item]));'),
+    tests:[
+      {desc:'Returns a Map keyed by id', fn:code=>{try{const items=[{id:1,name:'Ada'},{id:2,name:'Grace'}];const map=getExerciseFn(code,'indexById')(items);return map instanceof Map&&map.get(1).name==='Ada'&&map.get(2).name==='Grace';}catch(e){return false;}}},
+      {desc:'Keeps the original array unchanged', fn:code=>{try{const items=[{id:1,name:'Ada'}];getExerciseFn(code,'indexById')(items);return JSON.stringify(items)==='[{"id":1,"name":"Ada"}]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:114, cat:'Data Structures', title:'Count Values With Map', diff:'easy',
+    desc:'Count how many times each value appears.',
+    fullDesc:`Write a function called <code>countValues(values)</code> that returns a <code>Map</code> where each distinct value is a key and the value is the number of times it appeared.`,
+    hint:'Use Map to keep a running count for each value you see.',
+    starter:`// Write a function called countValues(values)
+// Return a Map of value counts
+
+`,
+    concept:buildConcept('Use Map when you want to count or collect data by key without converting everything to plain object strings.', 'This is very common for tallying tags, statuses, categories, or API response values.', 'counts.set(value, (counts.get(value) || 0) + 1);'),
+    tests:[
+      {desc:'Counts repeated values in a Map', fn:code=>{try{const result=getExerciseFn(code,'countValues')(['a','b','a','c','b','a']);return result instanceof Map&&result.get('a')===3&&result.get('b')===2&&result.get('c')===1;}catch(e){return false;}}},
+      {desc:'Handles an empty array', fn:code=>{try{const result=getExerciseFn(code,'countValues')([]);return result instanceof Map&&result.size===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:115, cat:'Data Structures', title:'Unique Values With Set', diff:'easy',
+    desc:'Remove duplicates while preserving order.',
+    fullDesc:`Write a function called <code>uniqueValues(values)</code> that returns a new array containing only the first occurrence of each value using <code>Set</code>.`,
+    hint:'A Set keeps only one copy of each value.',
+    starter:`// Write a function called uniqueValues(values)
+// Return an array of unique values
+
+`,
+    concept:buildConcept('Use Set when you want uniqueness and membership checks without writing manual duplicate tracking.', 'This is the standard tool for de-duping arrays, checking if something has already been seen, and building unique lists.', 'const unique = [...new Set(values)];'),
+    tests:[
+      {desc:'Returns unique values in order', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'uniqueValues')(['js','api','js','dom','api']))==='["js","api","dom"]';}catch(e){return false;}}},
+      {desc:'Handles a list with no duplicates', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'uniqueValues')(['a','b','c']))==='["a","b","c"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:116, cat:'Data Structures', title:'Private Metadata With WeakMap', diff:'hard',
+    desc:'Store hidden metadata for objects without exposing it.',
+    fullDesc:`Write a function called <code>createMetadataStore()</code> that returns an object with <code>set(target, metadata)</code> and <code>get(target)</code> methods backed by a <code>WeakMap</code>.`,
+    hint:'WeakMap keys must be objects and the stored data should be private to the store.',
+    starter:`// Write a function called createMetadataStore()
+// Return { set, get }
+
+`,
+    concept:buildConcept('Use WeakMap when you need private data attached to object keys and you do not want the metadata to keep those objects alive.', 'This shows up in internal caches, DOM metadata, and state that should not be enumerable or serialized.', 'const store = new WeakMap();'),
+    tests:[
+      {desc:'Stores and retrieves object metadata', fn:code=>{try{const store=getExerciseFn(code,'createMetadataStore')();const obj={id:1};store.set(obj,{role:'admin'});return store.get(obj).role==='admin';}catch(e){return false;}}},
+      {desc:'Returns undefined for unknown objects', fn:code=>{try{const store=getExerciseFn(code,'createMetadataStore')();return store.get({id:2})===undefined;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:117, cat:'Dates', title:'Check If Expired', diff:'easy',
+    desc:'Compare two dates to see if a deadline has passed.',
+    fullDesc:`Write a function called <code>isExpired(expiryDate, now = new Date())</code> that returns <code>true</code> when <code>expiryDate</code> is earlier than or equal to <code>now</code>.`,
+    hint:'Convert dates to numbers or compare their timestamps directly.',
+    starter:`// Write a function called isExpired(expiryDate, now = new Date())
+// Return true when the date has passed
+
+`,
+    concept:buildConcept('Use Date comparison when you need to know whether a deadline has passed.', 'Comparisons are easiest when you compare timestamps, and you should be careful about whether you want local time or UTC time.', 'expiryDate.getTime() <= now.getTime();'),
+    tests:[
+      {desc:'Returns true for past dates', fn:code=>{try{return getExerciseFn(code,'isExpired')(new Date('2020-01-01'),new Date('2020-01-02'))===true;}catch(e){return false;}}},
+      {desc:'Returns false for future dates', fn:code=>{try{return getExerciseFn(code,'isExpired')(new Date('2020-01-03'),new Date('2020-01-02'))===false;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:118, cat:'Dates', title:'Add Days to a Date', diff:'easy',
+    desc:'Return a new Date shifted by a number of days.',
+    fullDesc:`Write a function called <code>addDays(date, days)</code> that returns a new <code>Date</code> object representing <code>date</code> plus <code>days</code> days. Do not mutate the original date.`,
+    hint:'Clone the date first, then move the clone forward by the requested number of days.',
+    starter:`// Write a function called addDays(date, days)
+// Return a new Date shifted by days
+
+`,
+    concept:buildConcept('Use date arithmetic when you need to calculate due dates, reminders, or scheduling windows.', 'The safe pattern is to clone the original Date and then adjust the copy so the input value stays unchanged.', 'const next = new Date(date.getTime());'),
+    tests:[
+      {desc:'Adds the requested number of days', fn:code=>{try{return getExerciseFn(code,'addDays')(new Date('2020-01-01T00:00:00Z'),3).toISOString().startsWith('2020-01-04');}catch(e){return false;}}},
+      {desc:'Does not mutate the original date', fn:code=>{try{const original=new Date('2020-01-01T00:00:00Z');getExerciseFn(code,'addDays')(original,5);return original.toISOString().startsWith('2020-01-01');}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:119, cat:'Dates', title:'Is the Same Day', diff:'medium',
+    desc:'Check whether two dates fall on the same calendar day.',
+    fullDesc:`Write a function called <code>isSameDay(dateA, dateB)</code> that returns <code>true</code> when both dates represent the same year, month, and day.`,
+    hint:'Compare the date parts, not the full timestamp.',
+    starter:`// Write a function called isSameDay(dateA, dateB)
+// Return true if both dates are on the same calendar day
+
+`,
+    concept:buildConcept('Use same-day checks when the time of day does not matter.', 'This is common for calendars, reminders, and reporting where the important part is the calendar date rather than the exact time.', 'return a.getFullYear() === b.getFullYear() && ...'),
+    tests:[
+      {desc:'Returns true for dates on the same day', fn:code=>{try{return getExerciseFn(code,'isSameDay')(new Date('2026-04-24T01:00:00'),new Date('2026-04-24T23:59:00'))===true;}catch(e){return false;}}},
+      {desc:'Returns false for different days', fn:code=>{try{return getExerciseFn(code,'isSameDay')(new Date('2026-04-24T23:59:00'),new Date('2026-04-25T00:00:00'))===false;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:120, cat:'Browser APIs', title:'Save Draft to LocalStorage', diff:'easy',
+    desc:'Store JSON data in browser storage.',
+    fullDesc:`Write a function called <code>saveDraft(key, data, storage = localStorage)</code> that stores <code>data</code> in <code>storage</code> using <code>JSON.stringify()</code> and returns the original data.`,
+    hint:'localStorage only stores strings, so stringify the object first.',
+    starter:`// Write a function called saveDraft(key, data, storage = localStorage)
+// Store the data and return it
+
+`,
+    concept:buildConcept('Use localStorage when you need client-side persistence across page reloads.', 'Values must be stored as strings, so objects and arrays should be serialized with JSON.stringify first.', 'storage.setItem(key, JSON.stringify(data));'),
+    tests:[
+      {desc:'Stringifies and stores the data', fn:code=>{try{const calls=[];const storage={setItem:(key,value)=>calls.push({key,value})};const data={title:'Draft',done:false};const result=getExerciseFn(code,'saveDraft')('todo.draft',data,storage);return calls[0].key==='todo.draft'&&calls[0].value===JSON.stringify(data)&&JSON.stringify(result)==='{"title":"Draft","done":false}';}catch(e){return false;}}},
+      {desc:'Does not mutate the original data', fn:code=>{try{const storage={setItem:()=>{}};const data={theme:'dark'};getExerciseFn(code,'saveDraft')('settings',data,storage);return JSON.stringify(data)==='{"theme":"dark"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:121, cat:'Browser APIs', title:'Load Draft from LocalStorage', diff:'easy',
+    desc:'Read JSON data back from storage with a fallback.',
+    fullDesc:`Write a function called <code>loadDraft(key, storage = localStorage, fallback = null)</code> that reads the string from storage, parses it with <code>JSON.parse()</code>, and returns <code>fallback</code> when the item is missing.`,
+    hint:'Read the string first, then parse it only if it exists.',
+    starter:`// Write a function called loadDraft(key, storage = localStorage, fallback = null)
+// Return parsed data or the fallback value
+
+`,
+    concept:buildConcept('Use JSON.parse when you are reading text back out of storage and need the original object or array again.', 'This is the mirror image of saveDraft: retrieve the string, then deserialize it into a JavaScript value.', 'const data = JSON.parse(storage.getItem(key));'),
+    tests:[
+      {desc:'Parses stored JSON data', fn:code=>{try{const storage={getItem:()=>'{"theme":"dark"}'};return JSON.stringify(getExerciseFn(code,'loadDraft')('settings',storage,null))==='{"theme":"dark"}';}catch(e){return false;}}},
+      {desc:'Returns the fallback when missing', fn:code=>{try{const storage={getItem:()=>null};const fallback={theme:'light'};return JSON.stringify(getExerciseFn(code,'loadDraft')('settings',storage,fallback))==='{"theme":"light"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:122, cat:'Browser APIs', title:'Build Search URL', diff:'easy',
+    desc:'Create a URL with query parameters.',
+    fullDesc:`Write a function called <code>buildSearchUrl(baseUrl, params)</code> that returns a string with the query parameters from <code>params</code> appended to <code>baseUrl</code> using <code>URL</code> and <code>URLSearchParams</code>.`,
+    hint:'Create a URL object, assign search params, and return the final string.',
+    starter:`// Write a function called buildSearchUrl(baseUrl, params)
+// Return a URL string with query params
+
+`,
+    concept:buildConcept('Use URL and URLSearchParams when you need to construct or update a request URL safely.', 'This avoids hand-building query strings and handles encoding for you.', 'const url = new URL(baseUrl); url.search = new URLSearchParams(params);'),
+    tests:[
+      {desc:'Appends query parameters to the base URL', fn:code=>{try{return getExerciseFn(code,'buildSearchUrl')('https://example.com/users',{page:2,sort:'asc'})==='https://example.com/users?page=2&sort=asc';}catch(e){return false;}}},
+      {desc:'Preserves existing query strings', fn:code=>{try{return getExerciseFn(code,'buildSearchUrl')('https://example.com/users?view=grid',{page:3})==='https://example.com/users?view=grid&page=3';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:123, cat:'Browser APIs', title:'Read Cookie Value', diff:'easy',
+    desc:'Parse a cookie string and return one cookie value.',
+    fullDesc:`Write a function called <code>readCookie(name, cookieString = document.cookie)</code> that returns the value for the matching cookie or <code>null</code> if it is not present.`,
+    hint:'Split the cookie string on semicolons and trim each pair before comparing names.',
+    starter:`// Write a function called readCookie(name, cookieString = document.cookie)
+// Return the cookie value or null
+
+`,
+    concept:buildConcept('Use cookie parsing when your app needs to read small pieces of browser-managed state.', 'Cookies are often used for session identifiers and other values the browser sends automatically with requests.', 'const pairs = cookieString.split(";");'),
+    tests:[
+      {desc:'Reads the requested cookie value', fn:code=>{try{return getExerciseFn(code,'readCookie')('theme','theme=dark; session=abc123')==='dark';}catch(e){return false;}}},
+      {desc:'Returns null when the cookie is missing', fn:code=>{try{return getExerciseFn(code,'readCookie')('missing','theme=dark; session=abc123')===null;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:124, cat:'Browser APIs', title:'Push History State', diff:'medium',
+    desc:'Update the browser URL without reloading the page.',
+    fullDesc:`Write a function called <code>pushHistoryState(path, state = {}, historyImpl = history)</code> that calls <code>historyImpl.pushState()</code> with the provided path and state, then returns the new path.`,
+    hint:'history.pushState can update the address bar and the state object together.',
+    starter:`// Write a function called pushHistoryState(path, state = {}, historyImpl = history)
+// Update history and return the path
+
+`,
+    concept:buildConcept('Use the History API when you want to change the URL without forcing a full page load.', 'This is common in single-page apps for navigation, filters, and back-button friendly state changes.', 'history.pushState(state, "", path);'),
+    tests:[
+      {desc:'Calls pushState with the provided path and state', fn:code=>{try{const calls=[];const historyImpl={pushState:(state,title,path)=>calls.push({state,title,path})};const result=getExerciseFn(code,'pushHistoryState')('/profile',{section:'security'},historyImpl);return calls[0].path==='/profile'&&JSON.stringify(calls[0].state)==='{"section":"security"}'&&result==='/profile';}catch(e){return false;}}},
+      {desc:'Works when no state object is provided', fn:code=>{try{const calls=[];const historyImpl={pushState:(state,title,path)=>calls.push({state,title,path})};getExerciseFn(code,'pushHistoryState')('/settings',undefined,historyImpl);return JSON.stringify(calls[0].state)==='{}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:125, cat:'This', title:'Object Method Context', diff:'easy',
+    desc:'Use this inside an object method to read the latest values.',
+    fullDesc:`Write a function called <code>createProfile(name, role)</code> that returns an object with <code>name</code>, <code>role</code>, and a <code>describe()</code> method. The method should read from <code>this</code>, so if the object changes later, the message changes too.`,
+    hint:'Return an object literal and read this.name and this.role inside describe().',
+    starter:`// Write a function called createProfile(name, role)
+// Return an object with name, role, and describe()
+
+`,
+    concept:buildConcept('Inside an object method, this refers to the object that called the method.', 'Read the current values from this instead of closing over the function arguments so the method always reflects the object state.', 'return `${this.name} - ${this.role}`;'),
+    tests:[
+      {desc:'Describes the profile with current values', fn:code=>{try{const profile=getExerciseFn(code,'createProfile')('Ada','Engineer');return profile.describe()==='Ada - Engineer';}catch(e){return false;}}},
+      {desc:'Reads the latest object properties', fn:code=>{try{const profile=getExerciseFn(code,'createProfile')('Ada','Engineer');profile.role='Architect';return profile.describe()==='Ada - Architect';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:126, cat:'This', title:'Call and Apply', diff:'medium',
+    desc:'Use call or apply to run a function with a custom this value.',
+    fullDesc:`Write a function called <code>formatFullName(prefix = '')</code> that returns a string using <code>this.first</code> and <code>this.last</code>. It should work when called with <code>.call()</code> and <code>.apply()</code>.`,
+    hint:'Use this.first and this.last, then add the prefix in front.',
+    starter:`// Write a function called formatFullName(prefix = '')
+// Return a string using this.first and this.last
+
+`,
+    concept:buildConcept('Use call or apply when you want to run one function with an explicit this value.', 'They are useful when you want to borrow a function or test the same logic against different objects.', 'formatFullName.call(person, "Dr. ");'),
+    tests:[
+      {desc:'Works with call', fn:code=>{try{const formatFullName=getExerciseFn(code,'formatFullName');const person={first:'Ada',last:'Lovelace'};return formatFullName.call(person,'Dr. ')==='Dr. Ada Lovelace';}catch(e){return false;}}},
+      {desc:'Works with apply', fn:code=>{try{const formatFullName=getExerciseFn(code,'formatFullName');const person={first:'Ada',last:'Lovelace'};return formatFullName.apply(person,['Prof. '])==='Prof. Ada Lovelace';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:127, cat:'This', title:'Add Many Tasks', diff:'medium',
+    desc:'Keep this bound while adding items inside a callback.',
+    fullDesc:`Write a function called <code>createTodoList()</code> that returns an object with an <code>items</code> array, an <code>add(item)</code> method, and an <code>addMany(items)</code> method. <code>addMany</code> should add every item while keeping <code>this</code> pointing at the list object.`,
+    hint:'Use this.items inside add and make sure the callback used by addMany still sees the list object.',
+    starter:`// Write a function called createTodoList()
+// Return an object with items, add, and addMany
+
+`,
+    concept:buildConcept('Callbacks do not automatically preserve this, so use an arrow function, bind, or an explicit callback context when iterating.', 'That matters any time a method loops over data and needs to keep using the same object state.', 'items.forEach(item => this.add(item));'),
+    tests:[
+      {desc:'Adds items to the list', fn:code=>{try{const list=getExerciseFn(code,'createTodoList')();list.add('Write');list.addMany(['Test','Ship']);return JSON.stringify(list.items)==='["Write","Test","Ship"]';}catch(e){return false;}}},
+      {desc:'Uses the live items array on the object', fn:code=>{try{const list=getExerciseFn(code,'createTodoList')();list.items=[];list.add('Review');list.addMany(['Deploy']);return JSON.stringify(list.items)==='["Review","Deploy"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:128, cat:'This', title:'Arrow Keeps Context', diff:'hard',
+    desc:'Use an arrow function or bind so a later callback still sees this.',
+    fullDesc:`Write a function called <code>createReminder(label)</code> that returns an object with <code>label</code> and a <code>remind(schedule = fn => fn())</code> method. The method should keep the object context when the scheduled callback runs later.`,
+    hint:'Use an arrow callback or bind the function so it can still read this.label.',
+    starter:`// Write a function called createReminder(label)
+// Return an object with label and remind(schedule)
+
+`,
+    concept:buildConcept('Arrow functions do not create their own this; they capture it from the surrounding method.', 'That makes them useful for timers, promises, and other callbacks where a normal function would lose the object context.', 'schedule(() => `Reminder: ${this.label}`);'),
+    tests:[
+      {desc:'Reminds with the current label', fn:code=>{try{const reminder=getExerciseFn(code,'createReminder')('Pay bills');return reminder.remind(fn=>fn())==='Reminder: Pay bills';}catch(e){return false;}}},
+      {desc:'Reads the latest label value', fn:code=>{try{const reminder=getExerciseFn(code,'createReminder')('Pay bills');reminder.label='Check server';return reminder.remind(fn=>fn())==='Reminder: Check server';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:129, cat:'Capstone', title:'Build the Ultimate Dashboard', diff:'hard',
+    desc:'Combine data modeling, async loading, DOM rendering, persistence, and URL sync into one full project.',
+    fullDesc:`Write an ES module for a <code>Team Ops Dashboard</code> and export the helpers below. The goal is to wire them together into a real client-side app that loads data, renders a task board, and keeps user state in sync.
+
+<ul>
+  <li><code>normalizeTask(task)</code> trims text fields, applies defaults, and removes duplicate tags.</li>
+  <li><code>groupTasksByProject(tasks)</code> returns a <code>Map</code> that groups tasks by project id.</li>
+  <li><code>buildDashboardUrl(baseUrl, filters)</code> builds a filtered URL with <code>URL</code> and <code>URLSearchParams</code>.</li>
+  <li><code>saveDraft(key, data, storage = localStorage)</code> and <code>loadDraft(key, storage = localStorage, fallback = null)</code> persist the current draft in browser storage.</li>
+  <li><code>isTaskExpired(task, now = new Date())</code> checks whether a task deadline has passed.</li>
+  <li><code>loadSnapshot({ baseUrl, token, fetchImpl = fetch })</code> fetches profile and project data in parallel, sends a Bearer token, and throws a clear error when a request fails.</li>
+  <li><code>renderDashboard(snapshot, documentRef = document)</code> returns a DOM node for the finished dashboard view.</li>
+  <li>Export a default <code>createDashboardApp(config = {})</code> factory that wires the helpers into one cohesive project.</li>
+</ul>
+
+The finished app should let a user load remote projects, filter them through the URL, save an in-progress draft, and highlight overdue tasks visibly in the UI.`,
+    hint:'Break the project into helpers: normalize the data, fetch it, store it, render it, and then compose those pieces into one controller.',
+    starter:`// Capstone project: Team Ops Dashboard
+// Export the helper functions and a default createDashboardApp(config = {}) factory.
+
+// export function normalizeTask(task) {
+//   ...
+// }
+// export function groupTasksByProject(tasks) {
+//   ...
+// }
+// export function buildDashboardUrl(baseUrl, filters) {
+//   ...
+// }
+// export function saveDraft(key, data, storage = localStorage) {
+//   ...
+// }
+// export function loadDraft(key, storage = localStorage, fallback = null) {
+//   ...
+// }
+// export function isTaskExpired(task, now = new Date()) {
+//   ...
+// }
+// export async function loadSnapshot({ baseUrl, token, fetchImpl = fetch }) {
+//   ...
+// }
+// export function renderDashboard(snapshot, documentRef = document) {
+//   ...
+// }
+// export default function createDashboardApp(config = {}) {
+//   ...
+// }
+
+`,
+    concept:buildConcept('Capstone projects combine many smaller skills into one working app.', 'A strong approach is to split the problem into data cleanup, async loading, DOM rendering, browser persistence, and state sync, then connect those helpers through a single project factory.', 'export default function createDashboardApp(config = {}) { ... }'),
+    tests:[
+      {desc:'Normalizes task data without mutating the input', fn:async code=>{try{const mod=await getModuleExports(code);const original={id:'7',title:'  Plan launch  ',status:'',tags:['api','api','ui']};const result=mod.normalizeTask(original);return result.title==='Plan launch'&&result.status==='todo'&&JSON.stringify(result.tags)==='["api","ui"]'&&JSON.stringify(original)==='{"id":"7","title":"  Plan launch  ","status":"","tags":["api","api","ui"]}';}catch(e){return false;}}},
+      {desc:'Groups tasks by project with a Map', fn:async code=>{try{const mod=await getModuleExports(code);const grouped=mod.groupTasksByProject([{id:1,projectId:'alpha',title:'One'},{id:2,projectId:'beta',title:'Two'},{id:3,projectId:'alpha',title:'Three'}]);return grouped instanceof Map&&grouped.get('alpha').length===2&&grouped.get('beta')[0].title==='Two';}catch(e){return false;}}},
+      {desc:'Builds filtered URLs with existing query params', fn:async code=>{try{const mod=await getModuleExports(code);return mod.buildDashboardUrl('https://example.com/dashboard?view=grid',{status:'open',page:2})==='https://example.com/dashboard?view=grid&status=open&page=2';}catch(e){return false;}}},
+      {desc:'Saves and loads a draft through storage', fn:async code=>{try{const mod=await getModuleExports(code);const storage={store:{},setItem(key,value){this.store[key]=value;},getItem(key){return Object.prototype.hasOwnProperty.call(this.store,key)?this.store[key]:null;}};const data={filter:'open',tags:['api']};const saved=mod.saveDraft('dashboard',data,storage);const loaded=mod.loadDraft('dashboard',storage,null);return saved===data&&JSON.stringify(loaded)===JSON.stringify(data)&&storage.store.dashboard===JSON.stringify(data); }catch(e){return false;}}},
+      {desc:'Flags expired tasks by date', fn:async code=>{try{const mod=await getModuleExports(code);return mod.isTaskExpired({dueDate:'2020-01-01T00:00:00Z'},new Date('2020-01-02T00:00:00Z'))===true&&mod.isTaskExpired({dueDate:'2020-01-03T00:00:00Z'},new Date('2020-01-02T00:00:00Z'))===false;}catch(e){return false;}}},
+      {desc:'Loads profile and projects with auth headers', fn:async code=>{try{const mod=await getModuleExports(code);const calls=[];const fakeFetch=async(url,options={})=>{calls.push({url,options});if(url.endsWith('/me'))return{ok:true,json:async()=>({name:'Ada'})};if(url.endsWith('/projects'))return{ok:true,json:async()=>([{id:1,name:'Launch'}])};return{ok:false,status:404,json:async()=>({})};};const result=await mod.loadSnapshot({baseUrl:'https://api.example.com',token:'abc123',fetchImpl:fakeFetch});const headerValue=call=>call.options.headers?.get?call.options.headers.get('Authorization'):call.options.headers?.Authorization;return calls.length===2&&calls.some(call=>call.url.endsWith('/me'))&&calls.some(call=>call.url.endsWith('/projects'))&&calls.every(call=>headerValue(call)==='Bearer abc123')&&result.profile.name==='Ada'&&result.projects[0].name==='Launch';}catch(e){return false;}}},
+      {desc:'Throws a clear error when loading fails', fn:async code=>{try{const mod=await getModuleExports(code);const failingFetch=async url=>url.endsWith('/projects')?{ok:false,status:500,json:async()=>({})}:{ok:true,json:async()=>({name:'Ada'})};await mod.loadSnapshot({baseUrl:'https://api.example.com',token:'abc123',fetchImpl:failingFetch});return false;}catch(e){return /request|load|dashboard|500/i.test(String(e?.message||e));}}},
+      {desc:'Renders a dashboard section', fn:async code=>{try{const mod=await getModuleExports(code);const doc=document.implementation.createHTMLDocument('test');const section=mod.renderDashboard({profile:{name:'Ada'},projects:[{id:1,name:'Launch'}],tasks:[{id:1,title:'Plan',projectId:1,dueDate:'2026-04-24T00:00:00Z'}]},doc);return section.tagName==='SECTION'&&section.textContent.includes('Ada')&&section.querySelectorAll('article').length===1;}catch(e){return false;}}},
+      {desc:'Default export returns an app controller', fn:async code=>{try{const mod=await getModuleExports(code);const app=mod.default({baseUrl:'https://api.example.com'});return typeof mod.default==='function'&&app&&typeof app.load==='function'&&typeof app.render==='function'&&typeof app.setFilter==='function';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:130, cat:'Full Stack Tutorial', title:'Build a Full Stack Task Tracker', diff:'hard',
+    desc:'Follow a guided build for an app with an Express backend, JWT auth, protected task routes, and a browser dashboard.',
+    fullDesc:`Use this guided tutorial to turn the curriculum into a small but complete full stack app. You will build the backend first, add authentication, protect the task routes, and then finish with a client that stores tokens, renders tasks, and keeps filters in the URL.`,
+    hint:'Build in layers: backend, auth, CRUD, client shell, then persistence and URL sync.',
+    starter:`// Guided tutorial: Full Stack Task Tracker
+// Suggested real-world files:
+// server/index.js
+// server/auth.js
+// server/tasks.js
+// client/api.js
+// client/app.js
+//
+// Export these helpers in the playground:
+// function normalizeTask(task) { ... }
+// function buildAuthHeader(token) { ... }
+// function buildTaskUrl(baseUrl, filters) { ... }
+// function groupTasksByProject(tasks) { ... }
+// function isTaskExpired(task, now = new Date()) { ... }
+// async function loadDashboardSnapshot({ baseUrl, token, fetchImpl = fetch }) { ... }
+// export default function createTaskTrackerApp(config = {}) { ... }
+
+`,
+    concept:buildConcept('Full stack tutorials connect browser UI, backend routes, and authentication into one workflow.', 'Keep the backend focused on data and permissions, keep the client focused on rendering and interaction, and let shared helpers handle URL, storage, and data-shaping logic.', 'const token = localStorage.getItem("token");'),
+    steps:[
+      {title:'Scaffold the backend', body:'Create an Express server with JSON parsing, CORS, and a /api/health route. Keep config in environment variables so the same app can run locally and in production.', example:'app.get("/api/health", (_req, res) => res.json({ ok: true }));'},
+      {title:'Add register and login', body:'Store users in a database or in-memory repository for the tutorial, hash passwords with bcrypt, and issue a JWT on successful login.', example:'const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });'},
+      {title:'Protect private routes', body:'Write auth middleware that reads the Authorization header, verifies the Bearer token, and attaches the current user to the request.', example:'const auth = (req, res, next) => { /* verify token */ };'},
+      {title:'Build task CRUD', body:'Add GET, POST, PATCH, and DELETE routes for tasks so each signed-in user can create, update, and remove their own items.', example:'router.patch("/api/tasks/:id", auth, async (req, res) => { /* update task */ });'},
+      {title:'Build the client shell', body:'Render login, register, and dashboard views. After login, save the token in localStorage and use it for every protected fetch call.', example:'headers: { Authorization: `Bearer ${token}` }'},
+      {title:'Finish the app flow', body:'Sync filters to the URL, store drafts locally, show loading and error states, and clear storage on logout so the app feels complete.', example:'history.replaceState({}, "", `?status=${status}`);'}
+    ],
+    tests:[
+      {desc:'Normalizes task data for the app', fn:async code=>{try{const mod=await getModuleExports(code);const original={id:'9',title:'  Ship dashboard  ',status:'',tags:['api','api','ui']};const result=mod.normalizeTask(original);return result.title==='Ship dashboard'&&result.status==='todo'&&JSON.stringify(result.tags)==='["api","ui"]'&&JSON.stringify(original)==='{"id":"9","title":"  Ship dashboard  ","status":"","tags":["api","api","ui"]}';}catch(e){return false;}}},
+      {desc:'Builds auth headers with a Bearer token', fn:async code=>{try{const mod=await getModuleExports(code);const header=mod.buildAuthHeader('abc123');return header.Authorization==='Bearer abc123';}catch(e){return false;}}},
+      {desc:'Builds a task URL with query params', fn:async code=>{try{const mod=await getModuleExports(code);return mod.buildTaskUrl('https://example.com/api/tasks?view=board',{status:'open',page:2})==='https://example.com/api/tasks?view=board&status=open&page=2';}catch(e){return false;}}},
+      {desc:'Groups tasks by project', fn:async code=>{try{const mod=await getModuleExports(code);const grouped=mod.groupTasksByProject([{projectId:'a',title:'One'},{projectId:'b',title:'Two'},{projectId:'a',title:'Three'}]);return grouped instanceof Map&&grouped.get('a').length===2&&grouped.get('b')[0].title==='Two';}catch(e){return false;}}},
+      {desc:'Flags overdue tasks correctly', fn:async code=>{try{const mod=await getModuleExports(code);return mod.isTaskExpired({dueDate:'2020-01-01T00:00:00Z'},new Date('2020-01-02T00:00:00Z'))===true&&mod.isTaskExpired({dueDate:'2020-01-03T00:00:00Z'},new Date('2020-01-02T00:00:00Z'))===false;}catch(e){return false;}}},
+      {desc:'Loads dashboard data with auth', fn:async code=>{try{const mod=await getModuleExports(code);const calls=[];const fetchImpl=async(url,options={})=>{calls.push({url,options});if(url.endsWith('/me'))return{ok:true,json:async()=>({name:'Ada'})};if(url.endsWith('/tasks'))return{ok:true,json:async()=>([{id:1,title:'Ship'}])};return{ok:false,status:404,json:async()=>({})};};const result=await mod.loadDashboardSnapshot({baseUrl:'https://api.example.com',token:'abc123',fetchImpl});const headerValue=call=>call.options.headers?.Authorization||call.options.headers?.get?.('Authorization');return calls.length===2&&calls.some(call=>call.url.endsWith('/me'))&&calls.some(call=>call.url.endsWith('/tasks'))&&calls.every(call=>headerValue(call)==='Bearer abc123')&&result.profile.name==='Ada'&&result.tasks[0].title==='Ship';}catch(e){return false;}}},
+      {desc:'Returns a controller from the default export', fn:async code=>{try{const mod=await getModuleExports(code);const app=mod.default({baseUrl:'https://api.example.com'});return app&&typeof app.load==='function'&&typeof app.login==='function'&&typeof app.logout==='function'&&typeof app.setFilter==='function';}catch(e){return false;}}}
     ]
   },
 ];
@@ -1663,6 +2424,7 @@ function loadExercise(ex){
   detail.classList.add('open');
   document.getElementById('ex-detail-title').textContent=ex.title;
   document.getElementById('ex-full-desc').innerHTML=ex.fullDesc;
+  renderTutorialSteps(ex.steps);
   document.getElementById('concept-box').innerHTML=`<strong>Concept:</strong><br><div class="concept-copy">${getConceptText(ex)}</div>`;
   document.getElementById('concept-box').classList.remove('show');
   document.getElementById('hint-box').textContent=ex.hint;
@@ -1687,6 +2449,41 @@ function renderTests(results){
   });
 }
 
+function renderTutorialSteps(steps){
+  const el=document.getElementById('tutorial-box');
+  if(!el)return;
+  el.innerHTML='';
+  if(!Array.isArray(steps)||!steps.length){
+    el.classList.remove('show');
+    return;
+  }
+  const label=document.createElement('strong');
+  label.textContent='Guided Tutorial';
+  el.appendChild(label);
+  steps.forEach((step,index)=>{
+    const card=document.createElement('div');
+    card.className='tutorial-step';
+    const title=document.createElement('div');
+    title.className='tutorial-step-title';
+    title.textContent=`Step ${index+1}: ${step.title}`;
+    const body=document.createElement('div');
+    body.className='tutorial-step-body';
+    body.textContent=step.body;
+    card.appendChild(title);
+    card.appendChild(body);
+    if(step.example){
+      const example=document.createElement('pre');
+      example.className='tutorial-step-example';
+      const code=document.createElement('code');
+      code.textContent=step.example;
+      example.appendChild(code);
+      card.appendChild(example);
+    }
+    el.appendChild(card);
+  });
+  el.classList.add('show');
+}
+
 const CONCEPT_BY_CAT={
   'Basics': `Basics cover JavaScript's core building blocks: values, variables, operators, and conditionals. This is where you practice reading code, storing data, and printing results.
 Example: <code>let score = 10; console.log(score);</code>`,
@@ -1701,24 +2498,32 @@ Example: <code>const person = { name: 'Ada', age: 36 };</code>`,
   'Loops': `Loops repeat work until a condition changes or every item has been processed. Use them when repeating the same action by hand would be wasteful.
 Example: <code>for (let i = 0; i < items.length; i++) { ... }</code>`,
   'Challenges': `Challenge exercises combine multiple ideas, so the main skill is choosing the right tool and breaking the task into small steps. Read the prompt, identify the data shape, then build it piece by piece.`,
-  'Async': `Async code waits for work that finishes later. Use async/await when you want promise-based code to read like a normal sequence of steps.
+  'Async': `Async code waits for work that finishes later. Use async/await when you want promise-based code to read like a normal sequence of steps, and combine it with retries, timeouts, or parallel requests when talking to APIs.
 Example: <code>const data = await fetchJson(url);</code>`,
   'Promises': `Promises represent a value that will arrive later. Chain <code>.then()</code> / <code>.catch()</code> or use <code>await</code> when you want to pause until the result is ready.
 Example: <code>delay(500).then(() => console.log('done'));</code>`,
   'DOM': `The DOM is the page structure the browser gives you to work with. Select nodes, create elements, change text or attributes, and append children to update the UI.
 Example: <code>const li = document.createElement('li'); list.appendChild(li);</code>`,
-  'Browser APIs': `Browser APIs are built-in tools such as <code>fetch</code>, <code>localStorage</code>, and <code>URLSearchParams</code>. They let your code talk to the browser and the network.
-Example: <code>localStorage.setItem('key', JSON.stringify(data));</code>`,
+  'Browser APIs': `Browser APIs are built-in tools such as <code>fetch</code>, <code>localStorage</code>, <code>sessionStorage</code>, <code>history</code>, <code>document.cookie</code>, <code>URL</code>, <code>URLSearchParams</code>, <code>JSON.parse</code>, and <code>JSON.stringify</code>. They let your code talk to the browser, the network, and persistent client-side state. Cross-origin requests are still subject to CORS, which the server must allow.
+Example: <code>const body = JSON.stringify(data);</code>`,
+  'HTTP & Auth': buildConcept('Use HTTP methods, headers, and auth schemes to talk to APIs safely. GET reads data, POST and PATCH send JSON in the body, Basic auth encodes a username and password, and Bearer auth sends a token in the Authorization header.', 'In tools like Postman or fetch, the core decisions are: choose the method, set the URL and query params, add headers, decide whether the body should be JSON, and inspect the response status.', 'Authorization: Bearer <token>'),
+  'Error Handling': buildConcept('Use errors to stop invalid work early and to make failures obvious.', 'Validate inputs, throw meaningful errors, and catch problems near the boundary where you can recover or show a useful message.', 'throw new Error("Missing name");'),
+  'Data Structures': buildConcept('Use Map for reliable key lookups, Set for uniqueness, and WeakMap for private metadata attached to objects.', 'These structures show up in caches, indexes, registries, and deduplication helpers.', 'const seen = new Set(items);'),
+  'Dates': buildConcept('Use Date when you need to compare, parse, add, or format time values.', 'The tricky part is choosing UTC vs local time and avoiding accidental mutation of the original Date object.', 'const copy = new Date(date.getTime());'),
+  'This': buildConcept('The value of this depends on how a function is called. In object methods it points at the receiver, call and apply let you choose it explicitly, bind locks it in, and arrow functions capture it from the surrounding scope.', 'Understanding the call site is the key to using this correctly.', 'obj.method.call(otherObject);'),
   'Classes': `Classes group state and behavior. A constructor sets the initial values, and methods describe what the object can do after it exists.
 Example: <code>class Counter { constructor(start = 0) { this.value = start; } }</code>`,
   'Modules': `Modules split code into files. Use named exports for multiple utilities and default exports for the main thing a file provides.
 Example: <code>export function sum(a, b) { return a + b; }</code>`,
+  'Destructuring & Spread': buildConcept('Use destructuring to pull values out of objects or arrays, and use rest and spread to collect leftovers, omit fields, or clone and merge data without mutating the original structure.', 'These patterns show up constantly in API response handling, config updates, state changes, and helper functions.', 'const { id, ...safeUser } = user;'),
   'Array Methods': `Array methods are shortcuts for working with lists. <code>map()</code> transforms items, <code>filter()</code> keeps matches, <code>reduce()</code> combines values, <code>find()</code> returns the first match, <code>some()</code>/<code>every()</code> return booleans, and <code>slice()</code>/<code>sort()</code>/<code>splice()</code> help with copying and ordering.
 Example: <code>const names = users.filter(u => u.active).map(u => u.name);</code>`,
   'String Methods': `String methods help you clean, inspect, and reformat text. Normalize input first, then split, search, replace, or pad it depending on the output you want.
 Example: <code>const slug = title.trim().toLowerCase().split(' ').join('-');</code>`,
   'Mini Projects': `Mini projects combine several smaller skills into one workflow. You usually parse input, transform data, render a result, and keep state in sync as the app changes.
-Example: <code>const summary = items.map(...).filter(...).reduce(...);</code>`
+Example: <code>const summary = items.map(...).filter(...).reduce(...);</code>`,
+  'Full Stack Tutorial': buildConcept('Full stack tutorials connect browser UI, backend routes, and authentication into one workflow.', 'Keep the backend focused on data and permissions, keep the client focused on rendering and interaction, and let shared helpers handle URL, storage, and data-shaping logic.', 'const token = localStorage.getItem("token");'),
+  'Capstone': buildConcept('Capstone projects combine many smaller skills into one working app.', 'A strong approach is to split the problem into data cleanup, async loading, DOM rendering, browser persistence, and state sync, then connect those helpers through a single project factory.', 'export default function createDashboardApp(config = {}) { ... }')
 };
 
 function buildConcept(summary, how='', example=''){
