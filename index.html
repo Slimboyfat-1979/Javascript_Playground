@@ -91,6 +91,12 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .hint-btn:hover{background:#ffb86c20}
 .hint-box{margin-top:8px;padding:8px 10px;background:#ffb86c10;border:1px solid #ffb86c30;border-radius:6px;font-size:11.5px;color:#ffb86c;font-family:'Syne',system-ui;line-height:1.6;display:none}
 .hint-box.show{display:block}
+.concept-box{margin-top:8px;padding:8px 10px;background:#8be9fd10;border:1px solid #8be9fd30;border-radius:6px;font-size:11.5px;color:#8be9fd;font-family:'Syne',system-ui;line-height:1.6;display:none}
+.concept-box.show{display:block}
+.concept-box strong{display:block;margin-bottom:4px;color:#f8f8f2;font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+.concept-box code{color:#f1fa8c;background:#44475a40;padding:1px 5px;border-radius:3px}
+.concept-copy p{margin-top:6px}
+.concept-copy p:first-child{margin-top:0}
 
 /* ── Workspace ── */
 #ws{display:flex;flex:1;overflow:hidden;min-height:0}
@@ -109,6 +115,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-js{background:#f1fa8c}.dot-html{background:#ff79c6}.dot-css{background:#8be9fd}
 .ep-label{font-size:12px;color:#6272a4;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 .ew{flex:1;overflow:hidden;min-height:0;min-width:0}
 .psplit{background:#383a4a;flex-shrink:0;z-index:20;transition:background .12s}
 .psplit:hover,.psplit.active{background:#bd93f9}
@@ -122,6 +129,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 #left.layout-v .drop-line{left:0;right:0;height:3px}
 #left.layout-h .drop-line{top:0;bottom:0;width:3px}
 #drag-ghost{position:fixed;z-index:9999;pointer-events:none;background:#21222c;border:1px solid #bd93f9;border-radius:6px;padding:5px 12px;font-size:12px;color:#bd93f9;font-family:'JetBrains Mono',monospace;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px #00000080;white-space:nowrap}
+
 #right{display:flex;flex-direction:column;flex:1;min-width:80px;overflow:hidden}
 #pvwrap{flex:1;position:relative;overflow:hidden;min-height:60px}
 #pv{width:100%;height:100%;border:none;display:block;background:#fff}
@@ -134,6 +142,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .ll{display:flex;gap:10px;padding:1px 0}.lp{color:#6272a4;flex-shrink:0;font-size:12px}
 #sd{width:8px;height:8px;border-radius:50%;background:#6272a4;flex-shrink:0;transition:background .25s}
 #sd.run{background:#ffb86c}#sd.ok{background:#50fa7b}#sd.err{background:#ff5555}
+
 
 /* ── CodeMirror Dracula ── */
 .ew .CodeMirror{height:100%!important;font-family:'JetBrains Mono',monospace!important;font-size:14px!important;line-height:1.75!important;background:#282a36!important;color:#f8f8f2!important}
@@ -148,6 +157,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .ew .cm-variable-3{color:#ffb86c!important}.ew .cm-property{color:#8be9fd!important}
 .ew .cm-operator{color:#ff79c6!important}.ew .cm-number{color:#bd93f9!important}
 .ew .cm-string{color:#f1fa8c!important}.ew .cm-string-2{color:#f1fa8c!important}
+
 .ew .cm-comment{color:#6272a4!important;font-style:italic!important}
 .ew .cm-atom{color:#bd93f9!important}.ew .cm-builtin{color:#50fa7b!important}
 .ew .cm-tag{color:#ff79c6!important}.ew .cm-attribute{color:#50fa7b!important}
@@ -217,11 +227,13 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
     <div id="ex-detail">
       <div id="ex-detail-hdr">
         <span id="ex-detail-title">Exercise</span>
+        <button id="concept-toggle-btn" class="hint-btn" style="margin-top:0;padding:3px 9px;border-color:#8be9fd40;color:#8be9fd">concept</button>
         <button id="hint-toggle-btn" class="hint-btn" style="margin-top:0;padding:3px 9px">hint</button>
         <button id="test-btn">▶ run tests</button>
       </div>
       <div id="ex-detail-body">
         <div class="ex-full-desc" id="ex-full-desc"></div>
+        <div id="concept-box" class="concept-box"></div>
         <div id="hint-box" class="hint-box"></div>
         <div id="test-results"></div>
       </div>
@@ -1232,6 +1244,300 @@ const car = {
       {desc:'Rejects when the promise is too slow', fn:async code=>{try{const slow=new Promise(resolve=>setTimeout(()=>resolve('ok'),50));await getExerciseFn(code,'withTimeout')(slow,10);return false;}catch(e){return /timeout/i.test(String(e?.message||e));}}}
     ]
   },
+  {
+    id:65, cat:'Array Methods', title:'Map Product Names', diff:'easy',
+    desc:'Transform an array of product objects into display strings.',
+    fullDesc:`Write a function called <code>mapProducts(products)</code> that returns an array of strings like <code>"Coffee - $5"</code> using <code>map()</code>.`,
+    hint:'Map each product object to a formatted string.',
+    starter:`// Write a function called mapProducts(products)
+// Return strings like "Coffee - $5"
+
+`,
+    tests:[
+      {desc:'Maps products into display strings', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'mapProducts')([{name:'Coffee',price:5},{name:'Tea',price:3}]))==='["Coffee - $5","Tea - $3"]';}catch(e){return false;}}},
+      {desc:'Does not mutate the original array', fn:code=>{try{const products=[{name:'Mug',price:8}];getExerciseFn(code,'mapProducts')(products);return products[0].name==='Mug';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:66, cat:'Array Methods', title:'Filter Active Users', diff:'easy',
+    desc:'Keep only the users that match a condition.',
+    fullDesc:`Write a function called <code>filterActive(users)</code> that returns only users whose <code>active</code> property is true using <code>filter()</code>.`,
+    hint:'Filter by the active flag.',
+    starter:`// Write a function called filterActive(users)
+// Return only users where active is true
+
+`,
+    tests:[
+      {desc:'Returns only active users', fn:code=>{try{const result=getExerciseFn(code,'filterActive')([{name:'Ada',active:true},{name:'Linus',active:false},{name:'Grace',active:true}]);return result.length===2&&result[0].name==='Ada'&&result[1].name==='Grace';}catch(e){return false;}}},
+      {desc:'Returns an empty array when none match', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'filterActive')([{active:false},{active:false}]))==='[]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:67, cat:'Array Methods', title:'Reduce Totals', diff:'medium',
+    desc:'Sum order totals with reduce.',
+    fullDesc:`Write a function called <code>totalOrderValue(orders)</code> that returns the total of the <code>total</code> field across all orders using <code>reduce()</code>.`,
+    hint:'Start reduce at 0 and accumulate the total fields.',
+    starter:`// Write a function called totalOrderValue(orders)
+// Sum the total property across all orders
+
+`,
+    tests:[
+      {desc:'Adds the order totals together', fn:code=>{try{return getExerciseFn(code,'totalOrderValue')([{total:10},{total:25},{total:5}])===40;}catch(e){return false;}}},
+      {desc:'Handles an empty array', fn:code=>{try{return getExerciseFn(code,'totalOrderValue')([])===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:68, cat:'Array Methods', title:'Sort By Score', diff:'medium',
+    desc:'Sort records by score without mutating the original array.',
+    fullDesc:`Write a function called <code>sortByScore(items)</code> that returns a new array sorted from highest score to lowest score using <code>sort()</code>. Do not mutate the original array.`,
+    hint:'Clone first, then sort the clone using a numeric compare function.',
+    starter:`// Write a function called sortByScore(items)
+// Return a new array sorted by score descending
+
+`,
+    tests:[
+      {desc:'Sorts from highest score to lowest', fn:code=>{try{const input=[{name:'A',score:5},{name:'B',score:10},{name:'C',score:7}];const result=getExerciseFn(code,'sortByScore')(input);return result[0].score===10&&result[1].score===7&&result[2].score===5;}catch(e){return false;}}},
+      {desc:'Does not mutate the original array', fn:code=>{try{const input=[{score:2},{score:1}];getExerciseFn(code,'sortByScore')(input);return input[0].score===2&&input[1].score===1;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:69, cat:'Array Methods', title:'Find First Completed', diff:'easy',
+    desc:'Find the first matching item in an array.',
+    fullDesc:`Write a function called <code>findCompleted(tasks)</code> that returns the first task whose <code>done</code> property is true using <code>find()</code>.`,
+    hint:'Return the first object that matches the condition.',
+    starter:`// Write a function called findCompleted(tasks)
+// Return the first task where done is true
+
+`,
+    tests:[
+      {desc:'Returns the first completed task', fn:code=>{try{const tasks=[{id:1,done:false},{id:2,done:true},{id:3,done:true}];const result=getExerciseFn(code,'findCompleted')(tasks);return result.id===2;}catch(e){return false;}}},
+      {desc:'Returns undefined when there is no match', fn:code=>{try{return getExerciseFn(code,'findCompleted')([{done:false}])===undefined;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:70, cat:'Array Methods', title:'Membership Check', diff:'easy',
+    desc:'Check if an item exists and where it is located.',
+    fullDesc:`Write a function called <code>hasAndWhere(items, value)</code> that returns an object with <code>has</code> from <code>includes()</code> and <code>index</code> from <code>indexOf()</code>.`,
+    hint:'Use both includes and indexOf on the same array.',
+    starter:`// Write a function called hasAndWhere(items, value)
+// Return { has, index }
+
+`,
+    tests:[
+      {desc:'Reports that the item exists and where it is', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'hasAndWhere')(['a','b','c'],'b'))==='{"has":true,"index":1}';}catch(e){return false;}}},
+      {desc:'Reports a missing item correctly', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'hasAndWhere')(['a','b','c'],'z'))==='{"has":false,"index":-1}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:71, cat:'Array Methods', title:'Any and All', diff:'easy',
+    desc:'Use some and every together on the same data set.',
+    fullDesc:`Write a function called <code>analyzeOrders(orders, limit)</code> that returns an object with <code>anyLarge</code> when any order total is above <code>limit</code> and <code>allPositive</code> when every order total is greater than 0.`,
+    hint:'some() checks if any item matches; every() checks if all items match.',
+    starter:`// Write a function called analyzeOrders(orders, limit)
+// Return { anyLarge, allPositive }
+
+`,
+    tests:[
+      {desc:'Detects large orders and positive totals', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'analyzeOrders')([{total:10},{total:120},{total:30}],100))==='{"anyLarge":true,"allPositive":true}';}catch(e){return false;}}},
+      {desc:'Flags non-positive totals', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'analyzeOrders')([{total:10},{total:0}],100))==='{"anyLarge":false,"allPositive":false}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:72, cat:'Array Methods', title:'Slice and Splice', diff:'medium',
+    desc:'Use slice for previews and splice for edits.',
+    fullDesc:`Write two functions: <code>previewItems(items, count)</code> should return the first <code>count</code> items using <code>slice()</code>, and <code>replaceAt(items, index, value)</code> should replace one item in place using <code>splice()</code> and return the updated array.`,
+    hint:'slice does not mutate; splice does.',
+    starter:`// Write previewItems(items, count) and replaceAt(items, index, value)
+// previewItems should use slice; replaceAt should use splice
+
+`,
+    tests:[
+      {desc:'Returns a preview without mutating', fn:code=>{try{const preview=getExerciseFn(code,'previewItems');const items=[1,2,3,4];const result=preview(items,2);return JSON.stringify(result)==='[1,2]'&&JSON.stringify(items)==='[1,2,3,4]';}catch(e){return false;}}},
+      {desc:'Replaces an item in place', fn:code=>{try{const replaceAt=getExerciseFn(code,'replaceAt');const items=['a','b','c'];const result=replaceAt(items,1,'z');return JSON.stringify(result)==='["a","z","c"]'&&JSON.stringify(items)==='["a","z","c"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:73, cat:'String Methods', title:'Trim Input', diff:'easy',
+    desc:'Remove extra whitespace from user input.',
+    fullDesc:`Write a function called <code>cleanName(name)</code> that returns the value with surrounding whitespace removed using <code>trim()</code>.`,
+    hint:'Trim the string before returning it.',
+    starter:`// Write a function called cleanName(name)
+// Return the trimmed string
+
+`,
+    tests:[
+      {desc:'Removes leading and trailing spaces', fn:code=>{try{return getExerciseFn(code,'cleanName')('   Ada Lovelace   ')==='Ada Lovelace';}catch(e){return false;}}},
+      {desc:'Leaves already clean text unchanged', fn:code=>{try{return getExerciseFn(code,'cleanName')('Grace Hopper')==='Grace Hopper';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:74, cat:'String Methods', title:'Split and Join', diff:'easy',
+    desc:'Turn a title into a URL-friendly slug.',
+    fullDesc:`Write a function called <code>slugifyTitle(title)</code> that converts a title into lowercase words separated by hyphens using <code>split()</code> and <code>join()</code>.`,
+    hint:'Trim first, lower-case the text, then split on spaces and join with hyphens.',
+    starter:`// Write a function called slugifyTitle(title)
+// Return a lowercase slug like "hello-world"
+
+`,
+    tests:[
+      {desc:'Converts spaces into hyphens', fn:code=>{try{return getExerciseFn(code,'slugifyTitle')('Hello World Basics')==='hello-world-basics';}catch(e){return false;}}},
+      {desc:'Trims repeated outer spaces', fn:code=>{try{return getExerciseFn(code,'slugifyTitle')('  JavaScript Playground  ')==='javascript-playground';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:75, cat:'String Methods', title:'Replace First Match', diff:'easy',
+    desc:'Fix the first occurrence of a word in a sentence.',
+    fullDesc:`Write a function called <code>replaceFirstDraft(text)</code> that changes only the first occurrence of <code>draft</code> to <code>final</code> using <code>replace()</code>.`,
+    hint:'Use replace for a single replacement.',
+    starter:`// Write a function called replaceFirstDraft(text)
+// Replace the first "draft" with "final"
+
+`,
+    tests:[
+      {desc:'Replaces only the first occurrence', fn:code=>{try{return getExerciseFn(code,'replaceFirstDraft')('draft draft plan')==='final draft plan';}catch(e){return false;}}},
+      {desc:'Leaves text without the word unchanged', fn:code=>{try{return getExerciseFn(code,'replaceFirstDraft')('final plan')==='final plan';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:76, cat:'String Methods', title:'Replace All Mentions', diff:'easy',
+    desc:'Replace every instance of a repeated token.',
+    fullDesc:`Write a function called <code>replaceAllBadges(text)</code> that changes every occurrence of <code>badge</code> to <code>label</code> using <code>replaceAll()</code>.`,
+    hint:'Use replaceAll so every match changes, not just the first one.',
+    starter:`// Write a function called replaceAllBadges(text)
+// Replace every "badge" with "label"
+
+`,
+    tests:[
+      {desc:'Replaces every matching word', fn:code=>{try{return getExerciseFn(code,'replaceAllBadges')('badge badge badge')==='label label label';}catch(e){return false;}}},
+      {desc:'Returns unchanged text when there is no match', fn:code=>{try{return getExerciseFn(code,'replaceAllBadges')('button icon')==='button icon';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:77, cat:'String Methods', title:'Inspect Text', diff:'easy',
+    desc:'Check the beginning, ending, and contents of a sentence.',
+    fullDesc:`Write a function called <code>inspectSentence(text, term)</code> that returns an object with <code>startsWithHello</code>, <code>endsWithPeriod</code>, <code>includesTerm</code>, and <code>index</code> using <code>startsWith()</code>, <code>endsWith()</code>, <code>includes()</code>, and <code>indexOf()</code>.`,
+    hint:'Check the prefix, suffix, and search term separately.',
+    starter:`// Write a function called inspectSentence(text, term)
+// Return { startsWithHello, endsWithPeriod, includesTerm, index }
+
+`,
+    tests:[
+      {desc:'Detects the sentence shape and term position', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'inspectSentence')('Hello, code runner.', 'code'))==='{"startsWithHello":true,"endsWithPeriod":true,"includesTerm":true,"index":7}';}catch(e){return false;}}},
+      {desc:'Handles missing text correctly', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'inspectSentence')('A plain sentence', 'missing'))==='{"startsWithHello":false,"endsWithPeriod":false,"includesTerm":false,"index":-1}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:78, cat:'String Methods', title:'Slice and Substring', diff:'easy',
+    desc:'Extract useful pieces from a string.',
+    fullDesc:`Write a function called <code>extractEmailParts(email)</code> that returns an object with <code>username</code> and <code>domain</code> by using <code>substring()</code>, <code>slice()</code>, and <code>indexOf()</code>.`,
+    hint:'Find the @ position, then split the string into two parts.',
+    starter:`// Write a function called extractEmailParts(email)
+// Return { username, domain }
+
+`,
+    tests:[
+      {desc:'Splits the username and domain', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'extractEmailParts')('ada@code.com'))==='{"username":"ada","domain":"code.com"}';}catch(e){return false;}}},
+      {desc:'Works with longer addresses', fn:code=>{try{return JSON.stringify(getExerciseFn(code,'extractEmailParts')('grace.hopper@navy.mil'))==='{"username":"grace.hopper","domain":"navy.mil"}';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:79, cat:'String Methods', title:'Pad Start and End', diff:'easy',
+    desc:'Format rows so labels align cleanly.',
+    fullDesc:`Write a function called <code>formatLedgerRow(id, label)</code> that returns an object with a zero-padded <code>id</code> using <code>padStart()</code> and a fixed-width <code>label</code> using <code>padEnd()</code>.`,
+    hint:'Pad the numeric id on the left and the label on the right.',
+    starter:`// Write a function called formatLedgerRow(id, label)
+// Return { id, label }
+
+`,
+    tests:[
+      {desc:'Pads the id on the left', fn:code=>{try{const result=getExerciseFn(code,'formatLedgerRow')(7,'Tea');return result.id==='0007';}catch(e){return false;}}},
+      {desc:'Pads the label on the right', fn:code=>{try{const result=getExerciseFn(code,'formatLedgerRow')(7,'Tea');return result.label.length===10&&result.label.startsWith('Tea');}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:80, cat:'String Methods', title:'Repeat Banner', diff:'easy',
+    desc:'Build repeated decorative text.',
+    fullDesc:`Write a function called <code>makeBorder(char, count)</code> that returns a string made by repeating <code>char</code> <code>count</code> times using <code>repeat()</code>.`,
+    hint:'Repeat the character string exactly count times.',
+    starter:`// Write a function called makeBorder(char, count)
+// Return the repeated character string
+
+`,
+    tests:[
+      {desc:'Repeats the character the requested number of times', fn:code=>{try{return getExerciseFn(code,'makeBorder')('*',5)==='*****';}catch(e){return false;}}},
+      {desc:'Returns an empty string when count is zero', fn:code=>{try{return getExerciseFn(code,'makeBorder')('-',0)==='';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:81, cat:'String Methods', title:'Title Case Name', diff:'medium',
+    desc:'Normalize a name for display.',
+    fullDesc:`Write a function called <code>titleCaseName(name)</code> that trims the value and converts it to title case using <code>toLowerCase()</code> and <code>toUpperCase()</code>.`,
+    hint:'Lower-case the full string first, then capitalize each word.',
+    starter:`// Write a function called titleCaseName(name)
+// Return a title-cased version of the input
+
+`,
+    tests:[
+      {desc:'Converts the name to title case', fn:code=>{try{return getExerciseFn(code,'titleCaseName')('gRACE hOPPER')==='Grace Hopper';}catch(e){return false;}}},
+      {desc:'Trims extra spaces before formatting', fn:code=>{try{return getExerciseFn(code,'titleCaseName')('  aDa   LoVeLaCe  ')==='Ada Lovelace';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:82, cat:'Mini Projects', title:'Cart Summary', diff:'medium',
+    desc:'Combine array methods to build a checkout summary.',
+    fullDesc:`Write a function called <code>summarizeCart(items)</code> that returns an object with <code>count</code>, <code>subtotal</code>, <code>featuredCount</code>, and <code>labels</code>. <code>subtotal</code> is the sum of <code>price * quantity</code> with a default quantity of 1, <code>featuredCount</code> counts items with a price of at least 10, and <code>labels</code> is a sorted array of strings like <code>"Tea x2"</code>.`,
+    hint:'Use map, filter, reduce, and sort on a copied array.',
+    starter:`// Write a function called summarizeCart(items)
+// Return { count, subtotal, featuredCount, labels }
+
+`,
+    tests:[
+      {desc:'Builds a full cart summary', fn:code=>{try{const items=[{name:'Tea',price:3,quantity:2},{name:'Coffee',price:5},{name:'Mug',price:12}];const result=getExerciseFn(code,'summarizeCart')(items);return JSON.stringify(result)==='{"count":3,"subtotal":23,"featuredCount":1,"labels":["Coffee x1","Mug x1","Tea x2"]}';}catch(e){return false;}}},
+      {desc:'Does not mutate the original items', fn:code=>{try{const items=[{name:'Tea',price:3,quantity:2}];getExerciseFn(code,'summarizeCart')(items);return JSON.stringify(items)==='[{"name":"Tea","price":3,"quantity":2}]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:83, cat:'Mini Projects', title:'Render Contact Cards', diff:'medium',
+    desc:'Build a small DOM view from sorted contact data.',
+    fullDesc:`Write a function called <code>renderContacts(contacts)</code> that returns a <code>section</code> element. Sort contacts by name, create one <code>article</code> per contact, put the name in an <code>h3</code> and the email in a <code>p</code>, and set <code>data-count</code> to the number of contacts.`,
+    hint:'Create elements with document.createElement and append them in sorted order.',
+    starter:`// Write a function called renderContacts(contacts)
+// Return a section element with contact cards
+
+`,
+    tests:[
+      {desc:'Returns a section with sorted contact cards', fn:code=>{try{const result=getExerciseFn(code,'renderContacts')([{name:'Grace Hopper',email:'grace@example.com'},{name:'Ada Lovelace',email:'ada@example.com'}]);const cards=result.querySelectorAll('article');return result.nodeName==='SECTION'&&result.dataset.count==='2'&&cards.length===2&&cards[0].querySelector('h3').textContent==='Ada Lovelace'&&cards[1].querySelector('p').textContent==='grace@example.com';}catch(e){return false;}}},
+      {desc:'Does not append into the main document', fn:code=>{try{const result=getExerciseFn(code,'renderContacts')([]);return result.isConnected===false&&result.querySelectorAll('article').length===0;}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:84, cat:'Mini Projects', title:'Recipe Slug Index', diff:'medium',
+    desc:'Normalize a list of recipe names into unique slugs.',
+    fullDesc:`Write a function called <code>buildRecipeIndex(titles)</code> that trims each title, converts it to lowercase, replaces spaces with hyphens, removes duplicates, and returns a sorted array of slugs.`,
+    hint:'Trim, lower-case, split/join, then dedupe and sort.',
+    starter:`// Write a function called buildRecipeIndex(titles)
+// Return a sorted array of unique slugs
+
+`,
+    tests:[
+      {desc:'Builds a sorted unique slug list', fn:code=>{try{const titles=['  Green Salad ','Banana Bread','green salad','Quick Soup'];return JSON.stringify(getExerciseFn(code,'buildRecipeIndex')(titles))==='["banana-bread","green-salad","quick-soup"]';}catch(e){return false;}}},
+      {desc:'Does not mutate the original titles', fn:code=>{try{const titles=['  Green Salad ','Banana Bread'];getExerciseFn(code,'buildRecipeIndex')(titles);return JSON.stringify(titles)==='["  Green Salad ","Banana Bread"]';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:85, cat:'Mini Projects', title:'Async Team Snapshot', diff:'hard',
+    desc:'Combine async loading with a compact summary report.',
+    fullDesc:`Write an async function called <code>loadTeamSnapshot(getUsers)</code> that awaits <code>getUsers()</code>, then returns an object with <code>total</code>, <code>active</code>, and <code>initials</code>. <code>initials</code> should be a sorted array like <code>["A.L.", "G.H."]</code> built from each user's name.`,
+    hint:'Await the loader, then map/filter/sort the results.',
+    starter:`// Write an async function called loadTeamSnapshot(getUsers)
+// Return { total, active, initials }
+
+`,
+    tests:[
+      {desc:'Builds an async team snapshot', fn:async code=>{try{const result=await getExerciseFn(code,'loadTeamSnapshot')(async()=>[{name:'Grace Hopper',active:true},{name:'Ada Lovelace',active:true},{name:'Katherine Johnson',active:false}]);return JSON.stringify(result)==='{"total":3,"active":2,"initials":["A.L.","G.H.","K.J."]}';}catch(e){return false;}}},
+      {desc:'Handles an empty async result', fn:async code=>{try{return JSON.stringify(await getExerciseFn(code,'loadTeamSnapshot')(async()=>[]))==='{"total":0,"active":0,"initials":[]}';}catch(e){return false;}}}
+    ]
+  },
 ];
 
 function getExerciseFn(code, name){
@@ -1357,6 +1663,8 @@ function loadExercise(ex){
   detail.classList.add('open');
   document.getElementById('ex-detail-title').textContent=ex.title;
   document.getElementById('ex-full-desc').innerHTML=ex.fullDesc;
+  document.getElementById('concept-box').innerHTML=`<strong>Concept:</strong><br><div class="concept-copy">${getConceptText(ex)}</div>`;
+  document.getElementById('concept-box').classList.remove('show');
   document.getElementById('hint-box').textContent=ex.hint;
   document.getElementById('hint-box').classList.remove('show');
   // Render pending tests
@@ -1377,6 +1685,117 @@ function renderTests(results){
     d.innerHTML=`<span class="test-icon">${icon}</span><span>${r.desc}</span>`;
     el.appendChild(d);
   });
+}
+
+const CONCEPT_BY_CAT={
+  'Basics': `Basics cover JavaScript's core building blocks: values, variables, operators, and conditionals. This is where you practice reading code, storing data, and printing results.
+Example: <code>let score = 10; console.log(score);</code>`,
+  'Functions': `Functions wrap reusable logic. They accept inputs through parameters, run a block of code, and usually return a value back to the caller.
+Example: <code>function add(a, b) { return a + b; }</code>`,
+  'Arrays': `Arrays store ordered values. Use them when position matters, then loop, index, map, filter, or reduce them depending on the shape of the result you need.
+Example: <code>const first = items[0];</code>`,
+  'Strings': `Strings are text values. Common work includes trimming spaces, splitting text apart, joining it back together, and searching for parts of a sentence.
+Example: <code>title.trim().toLowerCase().split(' ').join('-')</code>`,
+  'Objects': `Objects group related values under named keys. They are useful for records, settings, lookup tables, and anything with labels instead of positions.
+Example: <code>const person = { name: 'Ada', age: 36 };</code>`,
+  'Loops': `Loops repeat work until a condition changes or every item has been processed. Use them when repeating the same action by hand would be wasteful.
+Example: <code>for (let i = 0; i < items.length; i++) { ... }</code>`,
+  'Challenges': `Challenge exercises combine multiple ideas, so the main skill is choosing the right tool and breaking the task into small steps. Read the prompt, identify the data shape, then build it piece by piece.`,
+  'Async': `Async code waits for work that finishes later. Use async/await when you want promise-based code to read like a normal sequence of steps.
+Example: <code>const data = await fetchJson(url);</code>`,
+  'Promises': `Promises represent a value that will arrive later. Chain <code>.then()</code> / <code>.catch()</code> or use <code>await</code> when you want to pause until the result is ready.
+Example: <code>delay(500).then(() => console.log('done'));</code>`,
+  'DOM': `The DOM is the page structure the browser gives you to work with. Select nodes, create elements, change text or attributes, and append children to update the UI.
+Example: <code>const li = document.createElement('li'); list.appendChild(li);</code>`,
+  'Browser APIs': `Browser APIs are built-in tools such as <code>fetch</code>, <code>localStorage</code>, and <code>URLSearchParams</code>. They let your code talk to the browser and the network.
+Example: <code>localStorage.setItem('key', JSON.stringify(data));</code>`,
+  'Classes': `Classes group state and behavior. A constructor sets the initial values, and methods describe what the object can do after it exists.
+Example: <code>class Counter { constructor(start = 0) { this.value = start; } }</code>`,
+  'Modules': `Modules split code into files. Use named exports for multiple utilities and default exports for the main thing a file provides.
+Example: <code>export function sum(a, b) { return a + b; }</code>`,
+  'Array Methods': `Array methods are shortcuts for working with lists. <code>map()</code> transforms items, <code>filter()</code> keeps matches, <code>reduce()</code> combines values, <code>find()</code> returns the first match, <code>some()</code>/<code>every()</code> return booleans, and <code>slice()</code>/<code>sort()</code>/<code>splice()</code> help with copying and ordering.
+Example: <code>const names = users.filter(u => u.active).map(u => u.name);</code>`,
+  'String Methods': `String methods help you clean, inspect, and reformat text. Normalize input first, then split, search, replace, or pad it depending on the output you want.
+Example: <code>const slug = title.trim().toLowerCase().split(' ').join('-');</code>`,
+  'Mini Projects': `Mini projects combine several smaller skills into one workflow. You usually parse input, transform data, render a result, and keep state in sync as the app changes.
+Example: <code>const summary = items.map(...).filter(...).reduce(...);</code>`
+};
+
+function buildConcept(summary, how='', example=''){
+  const parts=[`<p>${summary}</p>`];
+  if(how)parts.push(`<p>${how}</p>`);
+  if(example)parts.push(`<p><strong>Example:</strong> <code>${example}</code></p>`);
+  return parts.join('');
+}
+
+const CONCEPT_BY_TITLE=[
+  [/^Map /,()=>buildConcept('Use <code>map()</code> when every input item should produce one output item.', 'It returns a new array with the same length as the original and does not mutate the source array.', 'const names = products.map(product => product.name);')],
+  [/^Filter /,()=>buildConcept('Use <code>filter()</code> when you want a smaller array that keeps only the items that pass a test.', 'The callback should return <code>true</code> to keep an item and <code>false</code> to drop it.', 'const activeUsers = users.filter(user => user.active);')],
+  [/^Reduce /,()=>buildConcept('Use <code>reduce()</code> when you want to collapse an array into one result.', 'Start with an initial value, then update the accumulator as you move through each item.', 'const total = orders.reduce((sum, order) => sum + order.total, 0);')],
+  [/^Sort /,()=>buildConcept('Use <code>sort()</code> when you need a specific order.', 'Pass a compare function for numbers and copy the array first if you do not want to mutate the original.', 'const sorted = [...items].sort((a, b) => a.score - b.score);')],
+  [/^Find /,()=>buildConcept('Use <code>find()</code> when you only need the first matching item.', 'It returns the item itself, not an array, and gives <code>undefined</code> when nothing matches.', 'const firstDone = tasks.find(task => task.done);')],
+  [/^Membership Check$/,()=>buildConcept('Use <code>includes()</code> for a true/false membership check and <code>indexOf()</code> when you also need the position.', 'They are useful for quick lookups in small arrays of strings or numbers.', "const hasTea = drinks.includes('tea');")],
+  [/^Any and All$/,()=>buildConcept('Use <code>some()</code> to ask whether at least one item matches and <code>every()</code> to ask whether all items match.', 'These methods return booleans, so they are perfect for validation and guard checks.', 'const anyLarge = orders.some(order => order.total > 100);')],
+  [/^Slice and Splice$/,()=>buildConcept('Use <code>slice()</code> to copy a portion of an array and <code>splice()</code> when you want to remove or replace items in place.', 'A good rule is: slice copies, splice mutates.', 'const preview = items.slice(0, 3);')],
+  [/^Trim Input$/,()=>buildConcept('Use <code>trim()</code> to remove extra spaces from the start and end of user input.', 'This is usually the first step before validation, comparison, or saving text.', 'const clean = name.trim();')],
+  [/^Split and Join$/,()=>buildConcept('Use <code>split()</code> to break a string into pieces and <code>join()</code> to combine pieces back into one string.', 'This is a common way to build slugs, format labels, or turn text into arrays you can process.', "const slug = title.toLowerCase().split(' ').join('-');")],
+  [/^Replace First Match$/,()=>buildConcept('Use <code>replace()</code> when only the first matching substring should change.', 'If you need every occurrence to change, switch to <code>replaceAll()</code> instead.', "const updated = text.replace('draft', 'final');")],
+  [/^Replace All Mentions$/,()=>buildConcept('Use <code>replaceAll()</code> when every occurrence should change.', 'It is the right tool when the text contains repeated words or tokens that all need the same replacement.', "const labels = text.replaceAll('badge', 'label');")],
+  [/^Inspect Text$/,()=>buildConcept('Use <code>startsWith()</code>, <code>endsWith()</code>, <code>includes()</code>, and <code>indexOf()</code> to inspect text patterns and positions.', 'These checks are useful when you want to validate input or branch based on where a word appears.', "const startsWithHello = text.startsWith('Hello');")],
+  [/^Slice and Substring$/,()=>buildConcept('Use <code>slice()</code> or <code>substring()</code> when you need part of a string by position.', 'Both return new strings, which makes them handy for pulling usernames, domains, codes, or prefixes out of text.', "const domain = email.slice(atIndex + 1);")],
+  [/^Pad Start and End$/,()=>buildConcept('Use <code>padStart()</code> to left-pad text and <code>padEnd()</code> to right-pad text.', 'They are useful for aligning columns, formatting IDs, and making labels line up in a neat display.', "const id = String(7).padStart(4, '0');")],
+  [/^Repeat Banner$/,()=>buildConcept('Use <code>repeat()</code> when you need the same character or word multiple times.', 'It is handy for separators, borders, and simple decorative output.', "const border = '*'.repeat(10);")],
+  [/^Title Case Name$/,()=>buildConcept('Use case conversion plus word splitting when you want to normalize capitalization.', 'A common pattern is to lowercase the input first, split on spaces, then capitalize each word and join them back together.', "const cleaned = name.trim().toLowerCase();")],
+  [/^Create an Object$/,()=>buildConcept('Use an object literal when you want to group related values under named keys.', 'This is the go-to structure for records, settings, and anything that is easier to read by label than by position.', "const person = { name: 'Ada', age: 36 };")],
+  [/^Object Keys$/,()=>buildConcept('Use <code>Object.keys()</code> when you want an array of an object’s property names.', 'This is useful when you need to inspect, loop over, or transform the fields of an object.', 'const keys = Object.keys(car);')],
+  [/^Delay$/,()=>buildConcept('Use a promise plus a timer when you need to wait without blocking the rest of the program.', 'This is the base idea behind pauses, retry timers, and many async workflows.', 'await delay(500);')],
+  [/^Create Todo Item$/,()=>buildConcept('Use DOM creation APIs to build an element in code before adding it to the page.', 'Create the node, fill in its text or attributes, and append it to the parent container.', "const li = document.createElement('li');")],
+  [/^Remove Duplicates$/,()=>buildConcept('Use a Set when you want to remove duplicate values.', 'A Set only keeps one copy of each unique value, which makes it a quick deduplication tool.', 'const unique = [...new Set(items)];')],
+  [/^Is Palindrome$/,()=>buildConcept('Normalize the text and compare it to a reversed copy when checking for a palindrome.', 'Usually you lowercase the string first and remove anything that should not affect the comparison.', "return clean === [...clean].reverse().join('');")],
+  [/^Destructuring$/,()=>buildConcept('Use destructuring when you want to pull specific properties out of an object or specific items out of an array.', 'It keeps code shorter and makes it obvious which values the function or block cares about.', 'const { name, email } = user;')],
+  [/^FizzBuzz$/,()=>buildConcept('FizzBuzz is a condition-ordering exercise that teaches divisibility checks and branching.', 'Always check the combined condition first, then the more specific conditions, and finally the default case.', 'if (n % 3 === 0 && n % 5 === 0) { ... }')],
+  [/^Fibonacci$/,()=>buildConcept('Fibonacci teaches sequence building and state updates over time.', 'An iterative solution usually tracks the previous two numbers and updates them in a loop.', 'let [a, b] = [0, 1];')],
+  [/^Flatten Array$/,()=>buildConcept('Use flattening when you need to collapse one level of nested arrays.', 'This is a good introduction to concatenation, recursion, or built-in helpers like <code>flat()</code>.', 'const flat = nested.flat();')],
+  [/^Double All Numbers$/,()=>buildConcept('Use <code>map()</code> when every number should become a transformed version of itself.', 'This exercise reinforces the idea that mapping keeps the array shape the same while changing the values.', 'const doubled = nums.map(n => n * 2);')],
+  [/^Sum Positive Numbers$/,()=>buildConcept('Use filtering plus reduction when you want to keep only some values and then combine them.', 'First remove the values that do not count, then reduce the remaining numbers into a total.', 'const total = nums.filter(n => n > 0).reduce((sum, n) => sum + n, 0);')],
+  [/^Pick Keys$/,()=>buildConcept('Use object selection when you want to build a smaller object from a larger one.', 'This is the object version of filtering: keep the fields you need and ignore the rest.', 'const picked = pick(user, [\'name\', \'email\']);')],
+  [/^Create a Counter$/,()=>buildConcept('Use a closure when you need a function to remember private state between calls.', 'The outer function creates the state, and the inner function reads or updates it later.', 'let current = start;')],
+  [/^Is Prime$/,()=>buildConcept('Use divisor checking when testing whether a number is prime.', 'Numbers below 2 are not prime, and you only need to test divisors up to the square root.', 'for (let i = 2; i * i <= n; i++) { ... }')],
+  [/^Safe Parse JSON$/,()=>buildConcept('Use <code>try/catch</code> when you want to handle a parse failure without crashing.', 'This pattern is common when input might be invalid and you want to return a fallback value instead.', 'try { return JSON.parse(text); } catch { return null; }')],
+  [/^Validate Email$/,()=>buildConcept('Use a regular expression when you need a quick pattern check on a string.', 'You usually do not need a perfect email parser here, just a simple rule that catches obvious invalid input.', 'const ok = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(str);')],
+  [/^Format Date$/,()=>buildConcept('Use the Date API when you need a specific date format.', 'This exercise teaches you to read parts of a Date object and assemble them into the layout you want.', 'const formatted = `${year}-${month}-${day}`;')],
+  [/^Fetch JSON$/,()=>buildConcept('Use <code>fetch()</code> with <code>async/await</code> when you want to load data from a URL and parse the JSON response.', 'The important steps are waiting for the request, checking the response, and converting the body to data.', 'const data = await fetch(url).then(r => r.json());')],
+  [/^Promise All$/,()=>buildConcept('Use <code>Promise.all()</code> when several async tasks can run in parallel and you want all of their results together.', 'It resolves once everything succeeds and rejects as soon as one promise fails.', 'const results = await Promise.all(items);')],
+  [/^Render List$/,()=>buildConcept('Use DOM rendering when you want data to appear as visible elements on the page.', 'A render function usually clears old content, creates new nodes, and appends them in order.', 'items.forEach(item => container.appendChild(renderItem(item)));')],
+  [/^Serialize Form$/,()=>buildConcept('Use form serialization when you want to convert inputs into a plain object.', 'This makes form data easy to validate, log, or send to an API.', 'const data = Object.fromEntries(new FormData(form));')],
+  [/^Enable Todo Toggle$/,()=>buildConcept('Use event delegation when a single parent listener should handle clicks for many child items.', 'This keeps the code smaller and works well for lists that change over time.', 'list.addEventListener(\'click\', event => { ... });')],
+  [/^Promise All Settled$/,()=>buildConcept('Use <code>Promise.allSettled()</code> when you want to wait for every promise and keep both successes and failures.', 'It is useful for dashboards or batch jobs where one failure should not cancel the whole result.', 'const settled = await Promise.allSettled(tasks);')],
+  [/^Rectangle Class$/,()=>buildConcept('Use getters when you want a class to expose a derived value such as area or perimeter.', 'The class stores the base state, and the getter computes a result from that state.', 'get area() { return this.width * this.height; }')],
+  [/^Prototype Greeter$/,()=>buildConcept('Use a constructor prototype when you want shared behavior on objects created from the same function.', 'It is the older JavaScript pattern for defining methods that instances can reuse.', 'Greeter.prototype.sayHello = function() { ... };')],
+  [/^Default Export$/,()=>buildConcept('Use a default export when a file has one primary thing to expose.', 'Importers can choose the name they want for that value.', 'export default function format() { ... }')],
+  [/^With Timeout$/,()=>buildConcept('Use a timeout wrapper when you want to reject a promise if it takes too long.', 'This pattern is common for slow network calls or operations that should not hang forever.', 'Promise.race([task, timeoutPromise]);')],
+  [/^Group By$/,()=>buildConcept('Use grouping when you want to collect items into buckets by a shared property.', 'A reduce-based solution usually creates one object key per group and pushes items into the matching array.', 'const grouped = items.reduce((acc, item) => { ... }, {});')],
+  [/^Deep Clone$/,()=>buildConcept('Use recursion when you need to copy nested arrays or objects without sharing references.', 'A shallow copy only duplicates the top level; deep cloning walks into each nested value.', 'const copy = Array.isArray(value) ? value.map(deepClone) : { ...value };')],
+  [/^Memoize$/,()=>buildConcept('Use memoization when repeated calls with the same arguments should reuse a cached result.', 'This reduces unnecessary work for expensive functions.', 'cache.set(key, result);')],
+  [/^Curry a Function$/,()=>buildConcept('Currying turns one multi-argument function into a chain of smaller functions.', 'It is useful when you want to partially apply arguments over several calls.', 'const add = a => b => c => a + b + c;')],
+  [/^Binary Search$/,()=>buildConcept('Use binary search on sorted data when you want to cut the search space in half each step.', 'It is much faster than checking every item one by one.', 'while (low <= high) { ... }')],
+  [/^Create an Event Emitter$/,()=>buildConcept('Use an event emitter when multiple parts of your code need to communicate through named events.', 'The usual pattern is to store listeners, subscribe with on, and notify them with emit.', 'listeners.get(event).forEach(fn => fn(payload));')],
+  [/^Deep Merge Objects$/,()=>buildConcept('Use recursive merging when nested objects should combine without losing existing data.', 'The key idea is to recurse into plain objects instead of replacing them wholesale.', 'result[key] = isObject(source[key]) ? deepMerge(...) : source[key];')],
+  [/^Retry Async$/,()=>buildConcept('Use a retry loop when an async operation may fail temporarily but should be tried again.', 'This is common for flaky network calls or unstable services.', 'for (let attempt = 1; attempt <= maxRetries; attempt++) { ... }')],
+  [/^Debounce$/,()=>buildConcept('Use debouncing when you want to wait until rapid calls stop before running the function.', 'It is usually built with a closure and a timer.', 'clearTimeout(timer); timer = setTimeout(run, delay);')],
+  [/^Bank Account$/,()=>buildConcept('Use encapsulation when you want private state that can only be changed through methods.', 'A bank account is a classic example because deposit and withdraw should control access to the balance.', 'this.balance = initialBalance;')],
+  [/^Mixed Exports$/,()=>buildConcept('Use both named and default exports when a module has one primary value plus a few helpers.', 'This teaches the difference between importing a specific helper and importing the default entry point.', 'export default formatter; export const trim = value => value.trim();')],
+  [/^Cart Summary$/,()=>buildConcept('Use map, filter, and reduce together to turn raw cart items into a compact checkout summary.', 'First normalize each item, then filter or count the pieces you care about, and finally reduce them into totals.', 'const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);')],
+  [/^Render Contact Cards$/,()=>buildConcept('Use DOM creation APIs to turn sorted data into visible cards on the page.', 'Create each card element, fill it with contact data, and append everything into one container.', "const article = document.createElement('article');")],
+  [/^Recipe Slug Index$/,()=>buildConcept('Normalize text before comparing or storing it, then dedupe and sort the final result.', 'This exercise combines trimming, lowercasing, splitting/joining, Set-based deduplication, and sorting.', 'const slug = title.trim().toLowerCase().split(/\s+/).join('-');')],
+  [/^Async Team Snapshot$/,()=>buildConcept('Await the data first, then use array methods to summarize the result.', 'This exercise combines async loading with counting, filtering, mapping, and sorting the finished data.', 'const team = await getUsers();')]
+];
+
+function getConceptText(ex){
+  if(ex.concept)return ex.concept;
+  const titleRule=CONCEPT_BY_TITLE.find(([match])=>match.test(ex.title));
+  if(titleRule)return titleRule[1]();
+  return CONCEPT_BY_CAT[ex.cat] || buildConcept(`This exercise reinforces the core ideas in ${ex.cat}.`, 'Read the prompt carefully, identify the main tool you need, and work in small steps until the result matches the prompt.');
 }
 
 /* ── Run tests ── */
@@ -1409,6 +1828,9 @@ document.getElementById('test-btn').addEventListener('click',async()=>{
 });
 
 /* ── Hint toggle ── */
+document.getElementById('concept-toggle-btn').addEventListener('click',()=>{
+  document.getElementById('concept-box').classList.toggle('show');
+});
 document.getElementById('hint-toggle-btn').addEventListener('click',()=>{
   document.getElementById('hint-box').classList.toggle('show');
 });
