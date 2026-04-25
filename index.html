@@ -219,6 +219,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
 </head>
 <body>
 
@@ -2979,7 +2980,7 @@ const pvcover=document.getElementById('pvcover');
 const ghost=document.getElementById('drag-ghost');
 
 function makeEd(lang){
-  const cm=CodeMirror(document.getElementById('ew-'+lang),{value:codes[lang],mode:PANEL_META[lang].mode,lineNumbers:true,autoCloseBrackets:true,matchBrackets:true,autoCloseTags:true,lineWrapping:false,extraKeys:{'Ctrl-Space':'autocomplete','Tab':cm=>{if(!doEmmet(cm,lang))cm.execCommand('indentMore');},'Insert':false}});
+  const cm=CodeMirror(document.getElementById('ew-'+lang),{value:codes[lang],mode:PANEL_META[lang].mode,lineNumbers:true,autoCloseBrackets:true,matchBrackets:true,autoCloseTags:true,lineWrapping:false,extraKeys:{'Ctrl-Space':'autocomplete','Tab':cm=>{if(!doEmmet(cm,lang))cm.execCommand('indentMore');},'Insert':false,'Ctrl-/':cm=>cm.execCommand('toggleComment')}});
   cm.on('change',(_,ch)=>{codes[lang]=cm.getValue();if(ch.origin!=='setValue')scheduleRun();});
   cm.on('inputRead',()=>{const hf=lang==='js'?CodeMirror.hint.javascript:lang==='css'?CodeMirror.hint.css:CodeMirror.hint.html;cm.showHint({hint:hf,completeSingle:false});});
   return cm;
