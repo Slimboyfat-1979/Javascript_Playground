@@ -176,6 +176,8 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .ew .CodeMirror-gutters{background:#21222c!important;border-right:1px solid #44475a!important;min-width:46px!important}
 .ew .CodeMirror-linenumber{color:#6272a4!important;font-size:12px!important;padding:0 8px 0 4px!important}
 .ew .CodeMirror-cursor{border-left:2px solid #f8f8f2!important}
+.panel-close{margin-left:auto;background:none;border:none;color:#6272a4;font-size:16px;line-height:1;cursor:pointer;padding:0 4px;border-radius:3px;transition:color .15s,background .15s;flex-shrink:0}
+.panel-close:hover{color:#ff5555;background:#ffffff12}
 .ew .CodeMirror-selected{background:#44475a80!important}
 .ew .CodeMirror-activeline-background{background:#ffffff05!important}
 .ew .CodeMirror-matchingbracket{color:#ff79c6!important;font-weight:bold!important}
@@ -2962,7 +2964,7 @@ const pvcover=document.getElementById('pvcover');
 const ghost=document.getElementById('drag-ghost');
 
 function makeEd(lang){
-  const cm=CodeMirror(document.getElementById('ew-'+lang),{value:codes[lang],mode:PANEL_META[lang].mode,lineNumbers:true,autoCloseBrackets:true,matchBrackets:true,autoCloseTags:true,lineWrapping:false,extraKeys:{'Ctrl-Space':'autocomplete','Tab':cm=>{if(!doEmmet(cm,lang))cm.execCommand('indentMore');}}});
+  const cm=CodeMirror(document.getElementById('ew-'+lang),{value:codes[lang],mode:PANEL_META[lang].mode,lineNumbers:true,autoCloseBrackets:true,matchBrackets:true,autoCloseTags:true,lineWrapping:false,extraKeys:{'Ctrl-Space':'autocomplete','Tab':cm=>{if(!doEmmet(cm,lang))cm.execCommand('indentMore');},'Insert':false}});
   cm.on('change',(_,ch)=>{codes[lang]=cm.getValue();if(ch.origin!=='setValue')scheduleRun();});
   cm.on('inputRead',()=>{const hf=lang==='js'?CodeMirror.hint.javascript:lang==='css'?CodeMirror.hint.css:CodeMirror.hint.html;cm.showHint({hint:hf,completeSingle:false});});
   return cm;
@@ -2974,7 +2976,7 @@ function renderPanels(){
     const ep=document.createElement('div');
     ep.className='ep'+(vis[lang]?'':' hide');ep.id='ep-'+lang;ep.dataset.lang=lang;
     const meta=PANEL_META[lang];
-    ep.innerHTML=`<div class="ep-hdr" id="hdr-${lang}"><div class="drag-icon"><span></span><span></span><span></span></div><div class="dot ${meta.dotClass}"></div><span class="ep-label">${meta.label}</span></div><div class="ew" id="ew-${lang}"></div>`;
+    ep.innerHTML=`<div class="ep-hdr" id="hdr-${lang}"><div class="drag-icon"><span></span><span></span><span></span></div><div class="dot ${meta.dotClass}"></div><span class="ep-label">${meta.label}</span><button class="panel-close" data-lang="${lang}" title="Close panel">×</button></div><div class="ew" id="ew-${lang}"></div>`;
     leftEl.appendChild(ep);
     if(i<panelOrder.length-1){const s=document.createElement('div');s.className='psplit';s.dataset.idx=i;leftEl.appendChild(s);}
   });
@@ -2982,6 +2984,7 @@ function renderPanels(){
     if(!eds[lang]){eds[lang]=makeEd(lang);}
     else{document.getElementById('ew-'+lang).appendChild(eds[lang].getWrapperElement());eds[lang].refresh();}
     document.getElementById('hdr-'+lang).addEventListener('mousedown',onHdrDown);
+    document.getElementById('hdr-'+lang).querySelector('.panel-close').addEventListener('click',e=>{e.stopPropagation();const l=e.currentTarget.dataset.lang;vis[l]=false;document.getElementById('tog-'+l).classList.remove('vis');const ep=document.getElementById('ep-'+l);if(ep){ep.classList.add('hide');ep.style.flex='1';ep.style.height='';ep.style.width='';}updateSplitters();setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),10);});
   });
   leftEl.querySelectorAll('.psplit').forEach(s=>{
     s.addEventListener('mousedown',e=>{
