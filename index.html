@@ -61,6 +61,10 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .ex-title{font-size:12.5px;color:#f8f8f2;font-family:'Syne',system-ui;font-weight:500;display:flex;align-items:center;gap:6px}
 .ex-title .tick{color:#50fa7b;font-size:11px;display:none}
 .ex-item.done .tick{display:inline}
+.mark-done-btn{margin-left:auto;padding:2px 7px;border-radius:4px;font-size:10px;cursor:pointer;font-family:'Syne',system-ui;background:transparent;border:1px solid #44475a;color:#6272a4;transition:all .15s;flex-shrink:0;line-height:1.4}
+.mark-done-btn:hover{border-color:#50fa7b;color:#50fa7b}
+.ex-item.done .mark-done-btn{border-color:#50fa7b40;color:#50fa7b;background:#50fa7b12}
+.ex-item.done .mark-done-btn:hover{border-color:#ff555580;color:#ff5555;background:#ff555512}
 .ex-diff{font-size:10px;margin-top:3px;font-family:'Syne',system-ui}
 .diff-easy{color:#50fa7b}.diff-med{color:#ffb86c}.diff-hard{color:#ff5555}
 .ex-desc{font-size:11px;color:#6272a4;margin-top:4px;line-height:1.5;font-family:'Syne',system-ui}
@@ -2434,6 +2438,12 @@ function markCompleted(id){
     updateProgressSummary();
   }
 }
+function toggleCompleted(id){
+  if(done.has(id)){done.delete(id);}else{done.add(id);}
+  saveCompletedIds();
+  updateProgressSummary();
+  renderExList();
+}
 function clearCompleted(){
   done.clear();
   saveCompletedIds();
@@ -2556,9 +2566,10 @@ function renderExList(){
     group.items.forEach(ex=>{
       const d=document.createElement('div');
       d.className='ex-item'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'');
-      d.innerHTML=`<div class="ex-title"><span class="tick">✓</span>${ex.title}</div>
+      d.innerHTML=`<div class="ex-title"><span class="tick">✓</span>${ex.title}<button class="mark-done-btn" title="${done.has(ex.id)?'Mark incomplete':'Mark complete'}">${done.has(ex.id)?'✓ done':'mark done'}</button></div>
         <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${group.level}</div>
         <div class="ex-desc">${ex.desc}</div>`;
+      d.querySelector('.mark-done-btn').addEventListener('click',e=>{e.stopPropagation();toggleCompleted(ex.id);});
       d.addEventListener('click',()=>loadExercise(ex));
       wrap.appendChild(d);
     });
@@ -2650,10 +2661,14 @@ function renderPathList(list){
     const locked=unlockIndex!==-1&&index>unlockIndex;
     const d=document.createElement('div');
     d.className='ex-item path-step'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'')+(locked?' path-lock':'');
-    d.innerHTML=`<div class="ex-title"><span class="tick">${locked?'🔒':done.has(ex.id)?'✓':'→'}</span>${index+1}. ${ex.title}</div>
+    d.innerHTML=`<div class="ex-title"><span class="tick">${locked?'🔒':done.has(ex.id)?'✓':'→'}</span>${index+1}. ${ex.title}${!locked?`<button class="mark-done-btn" title="${done.has(ex.id)?'Mark incomplete':'Mark complete'}">${done.has(ex.id)?'✓ done':'mark done'}</button>`:''}</div>
       <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${ex.cat}</div>
       <div class="ex-desc">${ex.desc}</div>`;
-    if(!locked)d.addEventListener('click',()=>loadExercise(ex));
+    if(!locked){
+      const btn=d.querySelector('.mark-done-btn');
+      if(btn)btn.addEventListener('click',e=>{e.stopPropagation();toggleCompleted(ex.id);});
+      d.addEventListener('click',()=>loadExercise(ex));
+    }
     wrap.appendChild(d);
   });
   list.appendChild(wrap);
