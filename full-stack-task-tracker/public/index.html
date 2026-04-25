@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full Stack Task Tracker</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Full Stack Task Tracker</p>
+      <h1>Ship auth, APIs, and a dashboard in one small app.</h1>
+      <p class="lede">This scaffold mirrors the guided tutorial in the playground: register or log in, manage tasks, and keep filters in sync with the URL.</p>
+    </section>
+
+    <section class="panel auth-panel" id="auth-panel">
+      <div class="auth-grid">
+        <form class="card auth-form" id="login-form">
+          <div class="card-head">
+            <h2>Log in</h2>
+            <span>JWT auth</span>
+          </div>
+          <label>
+            Email
+            <input id="login-email" type="email" autocomplete="email" placeholder="demo@tasktracker.dev" required>
+          </label>
+          <label>
+            Password
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="demo123" required>
+          </label>
+          <button type="submit" class="primary">Log in</button>
+        </form>
+
+        <form class="card auth-form" id="register-form">
+          <div class="card-head">
+            <h2>Create account</h2>
+            <span>Quick signup</span>
+          </div>
+          <label>
+            Name
+            <input id="register-name" type="text" autocomplete="name" placeholder="Ada Lovelace" required>
+          </label>
+          <label>
+            Email
+            <input id="register-email" type="email" autocomplete="email" placeholder="ada@tasktracker.dev" required>
+          </label>
+          <label>
+            Password
+            <input id="register-password" type="password" autocomplete="new-password" placeholder="Choose a password" required>
+          </label>
+          <button type="submit" class="primary secondary">Register</button>
+        </form>
+      </div>
+      <p class="note">Demo account: <strong>demo@tasktracker.dev</strong> / <strong>demo123</strong></p>
+    </section>
+
+    <section class="panel app-panel" id="app-panel" hidden>
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Workspace</p>
+          <h2 id="welcome">Welcome</h2>
+          <p class="muted" id="user-meta"></p>
+        </div>
+        <button id="logout-btn" class="ghost">Log out</button>
+      </header>
+
+      <div class="dashboard-grid">
+        <form class="card form-card" id="task-form">
+          <div class="card-head">
+            <h3 id="task-form-title">Create task</h3>
+            <span id="task-form-state">New</span>
+          </div>
+          <label>
+            Title
+            <input id="task-title" type="text" placeholder="Ship onboarding flow" required>
+          </label>
+          <label>
+            Project
+            <input id="task-project" type="text" placeholder="Playground">
+          </label>
+          <div class="two-col">
+            <label>
+              Status
+              <select id="task-status">
+                <option value="todo">Todo</option>
+                <option value="in-progress">In progress</option>
+                <option value="done">Done</option>
+              </select>
+            </label>
+            <label>
+              Due date
+              <input id="task-due" type="date">
+            </label>
+          </div>
+          <label>
+            Notes
+            <textarea id="task-notes" rows="4" placeholder="What needs to happen?"></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit" id="task-submit" class="primary">Add task</button>
+            <button type="button" id="task-clear" class="ghost">Clear</button>
+          </div>
+        </form>
+
+        <aside class="card side-card">
+          <div class="card-head">
+            <h3>Filters</h3>
+            <span id="task-count">0 tasks</span>
+          </div>
+          <label>
+            Status
+            <select id="status-filter">
+              <option value="all">All statuses</option>
+              <option value="todo">Todo</option>
+              <option value="in-progress">In progress</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label>
+            Project
+            <select id="project-filter">
+              <option value="all">All projects</option>
+            </select>
+          </label>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-label">Overdue</span>
+              <strong id="overdue-count">0</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Due soon</span>
+              <strong id="soon-count">0</strong>
+            </div>
+          </div>
+          <p class="help">Filters sync with the URL, so the page can be reloaded or shared without losing context.</p>
+        </aside>
+      </div>
+
+      <section class="card list-card">
+        <div class="card-head">
+          <h3>Tasks</h3>
+          <span id="task-list-count">0 visible</span>
+        </div>
+        <div id="task-list" class="task-list"></div>
+      </section>
+
+      <div id="message" class="message" hidden></div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -106,6 +106,24 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
 .tutorial-step-body{color:#f8f8f2;font-size:11.5px;line-height:1.6}
 .tutorial-step-example{margin-top:6px;padding:6px 8px;background:#282a36;border:1px solid #44475a;border-radius:5px;overflow:auto}
 .tutorial-step-example code{display:block;white-space:pre-wrap;color:#f1fa8c;background:transparent;padding:0;border-radius:0}
+.review-box{margin-top:8px;padding:10px 10px 8px;background:#bd93f910;border:1px solid #bd93f940;border-radius:8px;font-size:11.5px;color:#bd93f9;font-family:'Syne',system-ui;line-height:1.6;display:none}
+.review-box.show{display:block}
+.review-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.review-topic{color:#f8f8f2;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+.review-score{color:#f1fa8c;font-size:11px}
+.review-q{color:#f8f8f2;font-size:12px;line-height:1.6;margin-bottom:8px}
+.review-choice{display:block;width:100%;text-align:left;padding:7px 9px;margin-top:6px;border-radius:6px;border:1px solid #44475a;background:#282a36;color:#f8f8f2;font-size:11.5px;cursor:pointer;font-family:'Syne',system-ui;transition:background .12s,border-color .12s}
+.review-choice:hover{background:#343746;border-color:#bd93f940}
+.review-choice.correct{background:#50fa7b18;border-color:#50fa7b80;color:#50fa7b}
+.review-choice.wrong{background:#ff555518;border-color:#ff555580;color:#ff5555}
+.review-feedback{margin-top:8px;padding:8px 9px;border-radius:6px;background:#44475a30;border:1px solid #44475a;color:#f8f8f2;display:none}
+.review-feedback.show{display:block}
+.review-actions{display:flex;gap:8px;align-items:center;margin-top:8px}
+.review-actions button{padding:4px 10px;border-radius:5px;border:1px solid #bd93f940;background:#bd93f920;color:#f8f8f2;cursor:pointer;font-family:'Syne',system-ui;font-size:11px}
+.review-actions button:hover{background:#bd93f930}
+.path-lock{opacity:.52}
+.path-lock .tick{visibility:hidden}
+.path-lock .ex-title::before{content:'🔒 ';margin-right:2px}
 
 /* ── Workspace ── */
 #ws{display:flex;flex:1;overflow:hidden;min-height:0}
@@ -213,6 +231,12 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
     <button class="ibtn on" id="lay-v">⊞ vertical</button>
     <button class="ibtn" id="lay-h">⊟ horizontal</button>
   </div>
+  <div class="bar-group">
+    <label>mode:</label>
+    <button class="ibtn on" id="catalog-btn">catalog</button>
+    <button class="ibtn" id="path-btn">path</button>
+    <button class="ibtn" id="review-btn">review</button>
+  </div>
   <div class="sp"></div>
   <button class="ibtn on" id="ar-btn">auto-run</button>
   <button class="ibtn" id="clr-btn">clear</button>
@@ -230,6 +254,7 @@ body{font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column}
         <span id="progress-summary">0/0 completed</span>
         <button id="reset-progress-btn" class="hint-btn" style="margin-top:0;padding:3px 8px">reset progress</button>
       </div>
+      <div id="review-box" class="review-box"></div>
     </div>
     <div id="ex-cats"></div>
     <div id="ex-list"></div>
@@ -2299,6 +2324,67 @@ The finished app should let a user load remote projects, filter them through the
       {desc:'Returns a controller from the default export', fn:async code=>{try{const mod=await getModuleExports(code);const app=mod.default({baseUrl:'https://api.example.com'});return app&&typeof app.load==='function'&&typeof app.login==='function'&&typeof app.logout==='function'&&typeof app.setFilter==='function';}catch(e){return false;}}}
     ]
   },
+  {
+    id:131, cat:'Modern Syntax', title:'Ternary Status Label', diff:'easy',
+    desc:'Use a ternary expression to choose between two labels.',
+    fullDesc:`Write a function called <code>statusLabel(isOpen)</code> that returns <code>'Open'</code> when <code>isOpen</code> is true and <code>'Closed'</code> otherwise. Use a ternary expression.`,
+    hint:'A ternary has the shape condition ? valueIfTrue : valueIfFalse.',
+    starter:`// Write a function called statusLabel(isOpen)
+// Return 'Open' or 'Closed' using a ternary expression
+
+`,
+    concept:buildConcept('Use a ternary when you want a compact if/else expression.', 'It is best for two-way choices that fit on one line and return a value immediately.', 'return isOpen ? "Open" : "Closed";'),
+    tests:[
+      {desc:'Returns Open when true', fn:code=>{try{return getExerciseFn(code,'statusLabel')(true)==='Open';}catch(e){return false;}}},
+      {desc:'Returns Closed when false', fn:code=>{try{return getExerciseFn(code,'statusLabel')(false)==='Closed';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:132, cat:'Modern Syntax', title:'Short Circuit Message', diff:'easy',
+    desc:'Use short circuiting to return a value only when a condition is true.',
+    fullDesc:`Write a function called <code>memberMessage(isMember)</code> that returns <code>'Member perks available'</code> only when <code>isMember</code> is truthy. Otherwise return an empty string. Use short circuiting with <code>&amp;&amp;</code>.`,
+    hint:'The left side of && controls whether the right side runs.',
+    starter:`// Write a function called memberMessage(isMember)
+// Return a message only when the condition is true
+
+`,
+    concept:buildConcept('Use short circuiting when the right-hand side should only run for truthy values.', 'This pattern is common for conditional rendering, optional function calls, and quick guard clauses.', 'return isMember && "Member perks available";'),
+    tests:[
+      {desc:'Returns the message for members', fn:code=>{try{return getExerciseFn(code,'memberMessage')(true)==='Member perks available';}catch(e){return false;}}},
+      {desc:'Returns a falsey empty result for non-members', fn:code=>{try{return getExerciseFn(code,'memberMessage')(false)==='';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:133, cat:'Modern Syntax', title:'Nullish Display Name', diff:'medium',
+    desc:'Use nullish coalescing to keep empty strings and zeros intact.',
+    fullDesc:`Write a function called <code>displayName(user)</code> that returns <code>user.displayName</code> when it is not null or undefined, otherwise falls back to <code>user.name</code>, and finally to <code>'Guest'</code>. Use <code>??</code>.`,
+    hint:'Nullish coalescing only falls back for null or undefined, not for empty strings.',
+    starter:`// Write a function called displayName(user)
+// Return displayName, name, or Guest using ??
+
+`,
+    concept:buildConcept('Use nullish coalescing when you want to treat only null and undefined as missing.', 'That makes it safer than || for data such as empty strings or 0 that should still count as valid values.', 'return user.displayName ?? user.name ?? "Guest";'),
+    tests:[
+      {desc:'Uses displayName when it exists', fn:code=>{try{return getExerciseFn(code,'displayName')({displayName:'Ada',name:'Grace'})==='Ada';}catch(e){return false;}}},
+      {desc:'Falls back to name when displayName is missing', fn:code=>{try{return getExerciseFn(code,'displayName')({displayName:null,name:'Grace'})==='Grace';}catch(e){return false;}}},
+      {desc:'Uses Guest when both values are missing', fn:code=>{try{return getExerciseFn(code,'displayName')({})==='Guest';}catch(e){return false;}}}
+    ]
+  },
+  {
+    id:134, cat:'Modern Syntax', title:'Safe User City', diff:'medium',
+    desc:'Use optional chaining to navigate nested objects safely.',
+    fullDesc:`Write a function called <code>getCity(user)</code> that returns <code>user.profile.address.city</code> when available and <code>'Unknown'</code> otherwise. Use optional chaining so missing objects do not crash the code.`,
+    hint:'Use ?. at each level where a property might be missing.',
+    starter:`// Write a function called getCity(user)
+// Safely return a nested city or 'Unknown'
+
+`,
+    concept:buildConcept('Use optional chaining when nested data may be missing along the path.', 'It keeps property access from throwing and works well with nullish coalescing for a fallback value.', 'return user.profile?.address?.city ?? "Unknown";'),
+    tests:[
+      {desc:'Returns the nested city when present', fn:code=>{try{return getExerciseFn(code,'getCity')({profile:{address:{city:'Austin'}}})==='Austin';}catch(e){return false;}}},
+      {desc:'Falls back when the nested path is missing', fn:code=>{try{return getExerciseFn(code,'getCity')({profile:{}})==='Unknown';}catch(e){return false;}}}
+    ]
+  },
 ];
 
 function getExerciseFn(code, name){
@@ -2354,10 +2440,70 @@ function clearCompleted(){
 }
 
 /* ── Categories ── */
-const CATS=['All',...new Set(EXERCISES.map(e=>e.cat))];
+const CURRICULUM_ORDER=['Basics','Functions','Modern Syntax','Arrays','Strings','Objects','Loops','Challenges','DOM','Promises','Async','Classes','Modules','Destructuring & Spread','Array Methods','String Methods','Browser APIs','HTTP & Auth','Error Handling','Data Structures','Dates','This','Mini Projects','Capstone','Full Stack Tutorial'];
+const ALL_CATEGORIES=[...new Set(EXERCISES.map(e=>e.cat))];
+const CATS=['All',...CURRICULUM_ORDER.filter(cat=>ALL_CATEGORIES.includes(cat)),...ALL_CATEGORIES.filter(cat=>!CURRICULUM_ORDER.includes(cat))];
 const done=new Set(loadCompletedIds());
 let activeCat='All';
 let activeEx=null;
+let learningMode='catalog';
+let reviewMode=false;
+let reviewIndex=0;
+let reviewScore=0;
+let reviewAnswered=false;
+let reviewSelected=-1;
+
+const REVIEW_BANK=[
+  {topic:'Modern Syntax',question:'Which operator falls back only when a value is null or undefined?',choices:['||','??','&&','?:'],answer:1,explanation:'Nullish coalescing uses ??, so empty strings and 0 still count as valid values.'},
+  {topic:'Modern Syntax',question:'What does optional chaining prevent when a nested property is missing?',choices:['A syntax error','A crash from accessing undefined','A network timeout','A duplicate object'],answer:1,explanation:'Optional chaining uses ?. to stop property access safely when a parent object is nullish.'},
+  {topic:'Modern Syntax',question:'What is the main use of a ternary expression?',choices:['Creating arrays','Two-way conditional expressions','Looping over objects','Parsing JSON'],answer:1,explanation:'Ternaries are compact if/else expressions that return one of two values.'},
+  {topic:'Modern Syntax',question:'When does the right side of && run?',choices:['Always','Only when the left side is truthy','Only when the left side is falsy','Only inside a function'],answer:1,explanation:'Short circuiting with && skips the right side when the left side is falsy.'},
+  {topic:'This',question:'Inside an object method, what does this usually refer to?',choices:['The global object','The object that called the method','The nearest arrow function','The last variable declared'],answer:1,explanation:'this depends on the call site, and object methods usually receive the object they were called on.'},
+  {topic:'This',question:'Which pair lets you choose the this value explicitly?',choices:['map and filter','call and apply','?? and ?.','setTimeout and Promise'],answer:1,explanation:'call and apply invoke a function with a specific this value.'},
+  {topic:'Browser APIs',question:'What should you do before storing an object in localStorage?',choices:['Call JSON.stringify','Call JSON.parse','Use optional chaining','Convert it to a Map'],answer:0,explanation:'localStorage only stores strings, so objects need to be serialized first.'},
+  {topic:'DOM',question:'What is event delegation?',choices:['One listener per child','A parent listener handling child events','Using fetch for events','Cloning elements'],answer:1,explanation:'Event delegation uses a single parent listener to handle events from many descendants.'}
+];
+
+function getOrderedCategories(){
+  return CURRICULUM_ORDER.filter(cat=>ALL_CATEGORIES.includes(cat)).concat(ALL_CATEGORIES.filter(cat=>!CURRICULUM_ORDER.includes(cat)));
+}
+function getCurriculumPath(){
+  const diffRank={easy:0,medium:1,hard:2};
+  return getOrderedCategories().flatMap(cat=>EXERCISES.filter(ex=>ex.cat===cat).sort((a,b)=>diffRank[a.diff]-diffRank[b.diff]||a.id-b.id));
+}
+
+function updateModeUI(){
+  const catalogBtn=document.getElementById('catalog-btn');
+  const pathBtn=document.getElementById('path-btn');
+  const reviewBtn=document.getElementById('review-btn');
+  if(catalogBtn)catalogBtn.classList.toggle('on',learningMode==='catalog');
+  if(pathBtn)pathBtn.classList.toggle('on',learningMode==='path');
+  if(reviewBtn)reviewBtn.classList.toggle('on',reviewMode);
+  const cats=document.getElementById('ex-cats');
+  if(cats)cats.style.display=learningMode==='catalog'?'':'none';
+  const subtitle=document.querySelector('#ex-hdr p');
+  if(subtitle)subtitle.textContent=learningMode==='path'?'Strict beginner-to-advanced learning path':'Progress from fundamentals to advanced patterns';
+}
+
+function setLearningMode(mode){
+  learningMode=mode;
+  updateModeUI();
+  renderExList();
+}
+
+function toggleReviewMode(){
+  reviewMode=!reviewMode;
+  reviewAnswered=false;
+  reviewSelected=-1;
+  if(reviewMode&&!sidebarOpen){
+    sidebarOpen=true;
+    sidebar.classList.remove('closed');
+    document.getElementById('ex-toggle-btn').classList.add('ex-on');
+    setTimeout(()=>Object.values(eds).forEach(cm=>cm.refresh()),220);
+  }
+  updateModeUI();
+  renderReviewPanel();
+}
 
 /* ── Sidebar open/close ── */
 let sidebarOpen=false;
@@ -2388,6 +2534,10 @@ CATS.forEach(c=>{
 function renderExList(){
   const list=document.getElementById('ex-list');
   list.innerHTML='';
+  if(learningMode==='path'){
+    renderPathList(list);
+    return;
+  }
   const filtered=activeCat==='All'?EXERCISES:EXERCISES.filter(e=>e.cat===activeCat);
   const grouped=LEVEL_ORDER.map(level=>({level,items:[]}));
   filtered.forEach(ex=>{
@@ -2432,6 +2582,7 @@ function loadExercise(ex){
   // Render pending tests
   renderTests(ex.tests.map(t=>({...t,state:'pending'})));
   renderExList();
+  renderReviewPanel();
   // Focus JS editor
   if(eds.js)setTimeout(()=>eds.js.focus(),100);
 }
@@ -2484,6 +2635,112 @@ function renderTutorialSteps(steps){
   el.classList.add('show');
 }
 
+function renderPathList(list){
+  const ordered=getCurriculumPath();
+  const unlockIndex=ordered.findIndex(ex=>!done.has(ex.id));
+  const wrap=document.createElement('div');
+  wrap.className='level-group';
+  const hdr=document.createElement('div');
+  hdr.className='level-header';
+  hdr.innerHTML='<span class="level-name">Learning Path</span><span class="level-note">Strict beginner-to-advanced order with one unlocked step at a time</span>';
+  wrap.appendChild(hdr);
+  ordered.forEach((ex,index)=>{
+    const locked=unlockIndex!==-1&&index>unlockIndex;
+    const d=document.createElement('div');
+    d.className='ex-item path-step'+(done.has(ex.id)?' done':'')+(activeEx&&activeEx.id===ex.id?' active':'')+(locked?' path-lock':'');
+    d.innerHTML=`<div class="ex-title"><span class="tick">${locked?'🔒':done.has(ex.id)?'✓':'→'}</span>${index+1}. ${ex.title}</div>
+      <div class="ex-diff diff-${ex.diff==='easy'?'easy':ex.diff==='medium'?'med':'hard'}">${ex.cat}</div>
+      <div class="ex-desc">${ex.desc}</div>`;
+    if(!locked)d.addEventListener('click',()=>loadExercise(ex));
+    wrap.appendChild(d);
+  });
+  list.appendChild(wrap);
+}
+
+function renderReviewPanel(){
+  const el=document.getElementById('review-box');
+  if(!el)return;
+  el.innerHTML='';
+  if(!reviewMode||!REVIEW_BANK.length){
+    el.classList.remove('show');
+    return;
+  }
+  const item=REVIEW_BANK[reviewIndex%REVIEW_BANK.length];
+  el.classList.add('show');
+
+  const head=document.createElement('div');
+  head.className='review-head';
+  const topic=document.createElement('div');
+  topic.className='review-topic';
+  topic.textContent=item.topic;
+  const score=document.createElement('div');
+  score.className='review-score';
+  score.textContent=`Score ${reviewScore} · ${reviewIndex+1}/${REVIEW_BANK.length}`;
+  head.appendChild(topic);
+  head.appendChild(score);
+  el.appendChild(head);
+
+  const question=document.createElement('div');
+  question.className='review-q';
+  question.textContent=item.question;
+  el.appendChild(question);
+
+  item.choices.forEach((choice,choiceIndex)=>{
+    const button=document.createElement('button');
+    button.className='review-choice';
+    button.type='button';
+    button.textContent=choice;
+    if(reviewAnswered){
+      if(choiceIndex===item.answer)button.classList.add('correct');
+      else if(choiceIndex===reviewSelected)button.classList.add('wrong');
+      button.disabled=true;
+    } else {
+      button.addEventListener('click',()=>{
+        reviewAnswered=true;
+        reviewSelected=choiceIndex;
+        if(choiceIndex===item.answer)reviewScore+=1;
+        renderReviewPanel();
+      });
+    }
+    el.appendChild(button);
+  });
+
+  const feedback=document.createElement('div');
+  feedback.className='review-feedback'+(reviewAnswered?' show':'');
+  if(reviewAnswered){
+    const isCorrect=reviewSelected===item.answer;
+    feedback.textContent=`${isCorrect?'Correct.':'Not quite.'} ${item.explanation}`;
+  } else {
+    feedback.textContent='Choose an answer to reveal the concept check.';
+  }
+  el.appendChild(feedback);
+
+  const actions=document.createElement('div');
+  actions.className='review-actions';
+  const nextBtn=document.createElement('button');
+  nextBtn.type='button';
+  nextBtn.textContent=reviewAnswered?'next question':'skip';
+  nextBtn.addEventListener('click',()=>{
+    reviewIndex=(reviewIndex+1)%REVIEW_BANK.length;
+    reviewAnswered=false;
+    reviewSelected=-1;
+    renderReviewPanel();
+  });
+  const resetBtn=document.createElement('button');
+  resetBtn.type='button';
+  resetBtn.textContent='reset quiz';
+  resetBtn.addEventListener('click',()=>{
+    reviewIndex=0;
+    reviewScore=0;
+    reviewAnswered=false;
+    reviewSelected=-1;
+    renderReviewPanel();
+  });
+  actions.appendChild(nextBtn);
+  actions.appendChild(resetBtn);
+  el.appendChild(actions);
+}
+
 const CONCEPT_BY_CAT={
   'Basics': `Basics cover JavaScript's core building blocks: values, variables, operators, and conditionals. This is where you practice reading code, storing data, and printing results.
 Example: <code>let score = 10; console.log(score);</code>`,
@@ -2506,6 +2763,7 @@ Example: <code>delay(500).then(() => console.log('done'));</code>`,
 Example: <code>const li = document.createElement('li'); list.appendChild(li);</code>`,
   'Browser APIs': `Browser APIs are built-in tools such as <code>fetch</code>, <code>localStorage</code>, <code>sessionStorage</code>, <code>history</code>, <code>document.cookie</code>, <code>URL</code>, <code>URLSearchParams</code>, <code>JSON.parse</code>, and <code>JSON.stringify</code>. They let your code talk to the browser, the network, and persistent client-side state. Cross-origin requests are still subject to CORS, which the server must allow.
 Example: <code>const body = JSON.stringify(data);</code>`,
+  'Modern Syntax': buildConcept('Use ternaries for concise two-way decisions, short-circuiting for conditional expressions, nullish coalescing for safe defaults, and optional chaining for navigating nested objects without throwing.', 'These operators are part of modern JavaScript style and show up constantly in UI rendering, API data handling, and defensive code.', 'user.profile?.address?.city ?? "Unknown";'),
   'HTTP & Auth': buildConcept('Use HTTP methods, headers, and auth schemes to talk to APIs safely. GET reads data, POST and PATCH send JSON in the body, Basic auth encodes a username and password, and Bearer auth sends a token in the Authorization header.', 'In tools like Postman or fetch, the core decisions are: choose the method, set the URL and query params, add headers, decide whether the body should be JSON, and inspect the response status.', 'Authorization: Bearer <token>'),
   'Error Handling': buildConcept('Use errors to stop invalid work early and to make failures obvious.', 'Validate inputs, throw meaningful errors, and catch problems near the boundary where you can recover or show a useful message.', 'throw new Error("Missing name");'),
   'Data Structures': buildConcept('Use Map for reliable key lookups, Set for uniqueness, and WeakMap for private metadata attached to objects.', 'These structures show up in caches, indexes, registries, and deduplication helpers.', 'const seen = new Set(items);'),
@@ -2639,13 +2897,25 @@ document.getElementById('concept-toggle-btn').addEventListener('click',()=>{
 document.getElementById('hint-toggle-btn').addEventListener('click',()=>{
   document.getElementById('hint-box').classList.toggle('show');
 });
+document.getElementById('catalog-btn').addEventListener('click',()=>setLearningMode('catalog'));
+document.getElementById('path-btn').addEventListener('click',()=>setLearningMode('path'));
+document.getElementById('review-btn').addEventListener('click',toggleReviewMode);
 document.getElementById('reset-progress-btn').addEventListener('click',()=>{
-  if(confirm('Clear saved exercise progress?'))clearCompleted();
+  if(confirm('Clear saved exercise progress?')){
+    clearCompleted();
+    reviewIndex=0;
+    reviewScore=0;
+    reviewAnswered=false;
+    reviewSelected=-1;
+    renderReviewPanel();
+  }
 });
 
 /* ── Init sidebar ── */
 renderExList();
 updateProgressSummary();
+updateModeUI();
+renderReviewPanel();
 
 /* ═══════════════════════════════════════════════
    DEFAULT CODE
